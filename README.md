@@ -21,9 +21,7 @@ A demonstration iMicrobe app server built with Flask.
       $ sudo yum -y install yum-utils
       $ sudo yum -y groupinstall development
       $ sudo yum -y install https://centos7.iuscommunity.org/ius-release.rpm
-      $ sudo yum -y install python36u
-      $ sudo yum -y install python36u-pip
-      $ sudo yum -y install python36u-devel
+      $ sudo yum -y install python36u python36u-pip python36u-devel
       ```
   8. create a virtual environment for the app server:
       ```

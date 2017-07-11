@@ -7,7 +7,7 @@ from ..models import Project
 @api.route('/project/')
 def get_projects():
     projects = Project.query.all()
-    return jsonify([project for project in projects])
+    return jsonify(projects)
 
 @api.route('/project/<int:id>')
 def get_project(id):

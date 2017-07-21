@@ -45,13 +45,13 @@ def test_projects__1(app_server_db):
     assert r.status_code == 200
     r_project = r.json()
     print(r_project)
-    assert r_project['project']['project_name'] == project_1.project_name
+    assert r_project['project_name'] == project_1.project_name
 
     r = requests.get(url=rest_url + '/projects/')
     assert r.status_code == 200
     r_projects = r.json()
     assert len(r_projects) == 1
-    assert r_projects[0]['project']['project_name'] == project_1.project_name
+    assert r_projects[0]['project_name'] == project_1.project_name
 
 
 def test_projects__2(app_server_db):
@@ -68,13 +68,13 @@ def test_projects__2(app_server_db):
     assert r.status_code == 200
     r_project = r.json()
     print(r_project)
-    assert r_project['project']['project_name'] == project_1.project_name
+    assert r_project['project_name'] == project_1.project_name
 
     r = requests.get(url=rest_url + '/projects/2')
     assert r.status_code == 200
     r_project = r.json()
     print(r_project)
-    assert r_project['project']['project_name'] == project_2.project_name
+    assert r_project['project_name'] == project_2.project_name
 
     # will the results always be in sorted order according to project_id?
     r = requests.get(url=rest_url + '/projects/')
@@ -82,5 +82,5 @@ def test_projects__2(app_server_db):
     r_projects = r.json()
     print(r_projects)
     assert len(r_projects) == 2
-    assert r_projects[0]['project']['project_name'] == project_1.project_name
-    assert r_projects[1]['project']['project_name'] == project_2.project_name
+    assert r_projects[0]['project_name'] == project_1.project_name
+    assert r_projects[1]['project_name'] == project_2.project_name

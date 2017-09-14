@@ -8,7 +8,6 @@ from app import db
 
 from app.models import Investigator
 
-
 rest_url = 'http://localhost:5000'
 
 @pytest.fixture
@@ -37,20 +36,24 @@ def test_investigators__0(app_server_db):
 
 def test_investigators__1(app_server_db):
 
-    investigator_1 = Investigator(investigator_name='investigator_1')
+    investigator_1 = Investigator(
+        investigator_name='investigator_1',
+        institution='institution_1')
     app_server_db.session.add(investigator_1)
     app_server_db.session.commit()
 
     r = requests.get(url=rest_url + '/investigators/1')
     assert r.status_code == 200
-    r_investigator = r.json()
-    print(r_investigator)
-    assert r_investigator['investigator_name'] == investigator_1.investigator_name
+    r_investigator_json = r.json()
+    print(r_investigator_json)
+    assert r_investigator_json == investigator_1.json()
+    #assert r_investigator['investigator_name'] == investigator_1.investigator_name
 
     r = requests.get(url=rest_url + '/investigators/')
     assert r.status_code == 200
     r_investigators = r.json()
     assert len(r_investigators) == 1
+    #assert r_investigators == IMicrobeEncoder().default([investigator_1])
     assert r_investigators[0]['investigator_name'] == investigator_1.investigator_name
 
 

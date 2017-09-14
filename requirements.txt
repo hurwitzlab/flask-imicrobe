@@ -1,5 +1,6 @@
 sqlalchemy
 flask
+flask-admin
 flask-script
 flask-sqlalchemy
 pymysql

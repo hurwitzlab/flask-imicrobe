@@ -1,4 +1,8 @@
+import os
+
 from flask import Flask
+from flask_admin import Admin
+from flask_admin.contrib.sqla import ModelView
 from flask_sqlalchemy import SQLAlchemy
 
 from config import configs
@@ -6,24 +10,31 @@ from config import configs
 
 db = SQLAlchemy()
 
+from app import models
+
 
 def create_app(config_name):
-    app = Flask(__name__)
+    app_ = Flask(__name__)
 
-    app.config.from_object(configs[config_name])
+    app_.config.from_object(configs[config_name])
 
-    configs[config_name].init_app(app)
+    configs[config_name].init_app(app_)
 
-    db.init_app(app)
+    db.init_app(app_)
 
     from .main import main as main_blueprint
 
-    app.register_blueprint(main_blueprint)
+    app_.register_blueprint(main_blueprint)
 
     from .imicrobe import imicrobe as imicrobe_api_blueprint
-    app.register_blueprint(imicrobe_api_blueprint)
+    app_.register_blueprint(imicrobe_api_blueprint, url_prefix='/flask')
 
     from .imicrobe import encoder
-    app.json_encoder = encoder.IMicrobeEncoder
+    app_.json_encoder = encoder.IMicrobeEncoder
 
-    return app
+    admin = Admin(app_, name='iMicrobe Admin', template_mode='bootstrap3', url='/flask/admin')
+    for models_class in models.__dict__.values():
+        if (isinstance(models_class, type) and models_class.__module__ == models.__name__):
+            admin.add_view(ModelView(models_class, db.session))
+
+    return app_

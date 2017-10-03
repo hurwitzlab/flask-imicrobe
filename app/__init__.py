@@ -23,7 +23,6 @@ def create_app(config_name):
     db.init_app(app_)
 
     from .main import main as main_blueprint
-
     app_.register_blueprint(main_blueprint)
 
     from .imicrobe import imicrobe as imicrobe_api_blueprint
@@ -36,5 +35,7 @@ def create_app(config_name):
     for models_class in models.__dict__.values():
         if (isinstance(models_class, type) and models_class.__module__ == models.__name__):
             admin.add_view(ModelView(models_class, db.session))
+        else:
+            print('"{}" is not a database model'.format(models_class))
 
     return app_

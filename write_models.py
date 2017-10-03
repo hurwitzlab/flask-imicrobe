@@ -52,7 +52,10 @@ def write_models():
                 elif column_type.startswith('DOUBLE'):
                     column_type = 'Float'
                 # TODO: what should LONGTEXT map to?
+                # TODO: what should MEDIUMTEXT map to?
                 elif column_type.startswith('LONGTEXT'):
+                    column_type = 'Text'
+                elif column_type.startswith('MEDIUMTEXT'):
                     column_type = 'Text'
                 elif column_type.startswith('ENUM'):
                     column_type = 'Enum'

@@ -10,6 +10,8 @@ class Config:
     SQLALCHEMY_POOL_RECYCLE = 60  # should be less than DB connection timeout
     SQLALCHEMY_DATABASE_URI = os.environ.get('IMICROBE_DB_URI')
 
+    SECRET_KEY = os.environ.get('IMICROBE_FLASK_SESSION_SECRET_KEY')
+
     def init_app(self, app):
         pass
 

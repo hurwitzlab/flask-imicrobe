@@ -1,6 +1,5 @@
 from app import db
 
-
 class App(db.Model):
     __tablename__ = 'app'
     app_id = db.Column('app_id', db.Integer, primary_key=True)
@@ -28,11 +27,13 @@ class Investigator(db.Model):
     investigator_id = db.Column('investigator_id', db.Integer, primary_key=True)
     investigator_name = db.Column('investigator_name', db.VARCHAR(255))
     institution = db.Column('institution', db.VARCHAR(255))
+    url = db.Column('url', db.VARCHAR(255))
 
     def json(self):
         return {
             'investigator_name': self.investigator_name,
             'institution': self.institution,
+            'url': self.url,
         }
 
 class Metadata_type(db.Model):
@@ -156,10 +157,10 @@ class Pubchase(db.Model):
     title = db.Column('title', db.VARCHAR(255))
     journal_title = db.Column('journal_title', db.VARCHAR(255))
     doi = db.Column('doi', db.VARCHAR(255))
-    authors = db.Column('authors', db.TEXT)
+    authors = db.Column('authors', db.Text)
     article_date = db.Column('article_date', db.DATE)
     created_on = db.Column('created_on', db.DATE)
-    url = db.Column('url', db.TEXT)
+    url = db.Column('url', db.Text)
 
     def json(self):
         return {
@@ -234,7 +235,7 @@ class Sample_attr_type(db.Model):
     sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer, primary_key=True)
     type = db.Column('type', db.VARCHAR(255))
     url_template = db.Column('url_template', db.VARCHAR(255))
-    description = db.Column('description', db.TEXT)
+    description = db.Column('description', db.Text)
     category = db.Column('category', db.VARCHAR(100))
 
     def json(self):
@@ -618,3 +619,4 @@ class Sample_to_ontology(db.Model):
             'sample_id': self.sample_id,
             'ontology_id': self.ontology_id,
         }
+

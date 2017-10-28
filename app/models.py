@@ -1,3 +1,5 @@
+import sqlalchemy
+
 from app import db
 
 class App(db.Model):
@@ -12,6 +14,100 @@ class App(db.Model):
             'is_active': self.is_active,
         }
 
+class App_run(db.Model):
+    __tablename__ = 'app_run'
+    app_run_id = db.Column('app_run_id', db.Integer, primary_key=True)
+    app_id = db.Column('app_id', db.Integer)
+    user_id = db.Column('user_id', db.Integer)
+    app_ran_at = db.Column('app_ran_at', db.DATETIME)
+    params = db.Column('params', db.TEXT)
+
+    def json(self):
+        return {
+            'app_id': self.app_id,
+            'user_id': self.user_id,
+            'app_ran_at': self.app_ran_at,
+            'params': self.params,
+        }
+
+class Assembly(db.Model):
+    __tablename__ = 'assembly'
+    assembly_id = db.Column('assembly_id', db.Integer, primary_key=True)
+    project_id = db.Column('project_id', db.Integer)
+    assembly_code = db.Column('assembly_code', db.VARCHAR(255))
+    assembly_name = db.Column('assembly_name', db.TEXT)
+    organism = db.Column('organism', db.VARCHAR(255))
+    pep_file = db.Column('pep_file', db.VARCHAR(255))
+    nt_file = db.Column('nt_file', db.VARCHAR(255))
+    cds_file = db.Column('cds_file', db.VARCHAR(255))
+    description = db.Column('description', db.TEXT)
+    sample_id = db.Column('sample_id', db.Integer)
+
+    def json(self):
+        return {
+            'project_id': self.project_id,
+            'assembly_code': self.assembly_code,
+            'assembly_name': self.assembly_name,
+            'organism': self.organism,
+            'pep_file': self.pep_file,
+            'nt_file': self.nt_file,
+            'cds_file': self.cds_file,
+            'description': self.description,
+            'sample_id': self.sample_id,
+        }
+
+class Combined_assembly(db.Model):
+    __tablename__ = 'combined_assembly'
+    combined_assembly_id = db.Column('combined_assembly_id', db.Integer, primary_key=True)
+    project_id = db.Column('project_id', db.Integer)
+    assembly_name = db.Column('assembly_name', db.VARCHAR(255))
+    phylum = db.Column('phylum', db.VARCHAR(255))
+    clazz = db.Column('clazz', db.VARCHAR(255))
+    family = db.Column('family', db.VARCHAR(255))
+    genus = db.Column('genus', db.VARCHAR(255))
+    species = db.Column('species', db.VARCHAR(255))
+    strain = db.Column('strain', db.VARCHAR(255))
+    pcr_amp = db.Column('pcr_amp', db.VARCHAR(255))
+    annotations_file = db.Column('annotations_file', db.VARCHAR(255))
+    peptides_file = db.Column('peptides_file', db.VARCHAR(255))
+    nucleotides_file = db.Column('nucleotides_file', db.VARCHAR(255))
+    cds_file = db.Column('cds_file', db.VARCHAR(255))
+
+    def json(self):
+        return {
+            'project_id': self.project_id,
+            'assembly_name': self.assembly_name,
+            'phylum': self.phylum,
+            'clazz': self.clazz,
+            'family': self.family,
+            'genus': self.genus,
+            'species': self.species,
+            'strain': self.strain,
+            'pcr_amp': self.pcr_amp,
+            'annotations_file': self.annotations_file,
+            'peptides_file': self.peptides_file,
+            'nucleotides_file': self.nucleotides_file,
+            'cds_file': self.cds_file,
+        }
+
+    sample_list = sqlalchemy.orm.relationship(
+        "Sample",
+        secondary="combined_assembly_to_sample",
+        back_populates="combined_assembly_list"
+    )
+
+class Combined_assembly_to_sample(db.Model):
+    __tablename__ = 'combined_assembly_to_sample'
+    combined_assembly_to_sample_id = db.Column('combined_assembly_to_sample_id', db.Integer, primary_key=True)
+    combined_assembly_id = db.Column('combined_assembly_id', db.Integer)
+    sample_id = db.Column('sample_id', db.Integer)
+
+    def json(self):
+        return {
+            'combined_assembly_id': self.combined_assembly_id,
+            'sample_id': self.sample_id,
+        }
+
 class Domain(db.Model):
     __tablename__ = 'domain'
     domain_id = db.Column('domain_id', db.Integer, primary_key=True)
@@ -20,6 +116,28 @@ class Domain(db.Model):
     def json(self):
         return {
             'domain_name': self.domain_name,
+        }
+
+    project_list = sqlalchemy.orm.relationship(
+        "Project",
+        secondary="project_to_domain",
+        back_populates="domain_list"
+    )
+
+class Ftp(db.Model):
+    __tablename__ = 'ftp'
+    ftp_id = db.Column('ftp_id', db.Integer, primary_key=True)
+    project_id = db.Column('project_id', db.Integer)
+    name = db.Column('name', db.VARCHAR(255))
+    path = db.Column('path', db.VARCHAR(255))
+    size = db.Column('size', db.VARCHAR(20))
+
+    def json(self):
+        return {
+            'project_id': self.project_id,
+            'name': self.name,
+            'path': self.path,
+            'size': self.size,
         }
 
 class Investigator(db.Model):
@@ -34,6 +152,30 @@ class Investigator(db.Model):
             'investigator_name': self.investigator_name,
             'institution': self.institution,
             'url': self.url,
+        }
+
+    project_list = sqlalchemy.orm.relationship(
+        "Project",
+        secondary="project_to_investigator",
+        back_populates="investigator_list"
+    )
+
+    sample_list = sqlalchemy.orm.relationship(
+        "Sample",
+        secondary="sample_to_investigator",
+        back_populates="investigator_list"
+    )
+
+class Login(db.Model):
+    __tablename__ = 'login'
+    login_id = db.Column('login_id', db.Integer, primary_key=True)
+    user_id = db.Column('user_id', db.Integer)
+    login_date = db.Column('login_date', db.DATETIME)
+
+    def json(self):
+        return {
+            'user_id': self.user_id,
+            'login_date': self.login_date,
         }
 
 class Metadata_type(db.Model):
@@ -65,6 +207,26 @@ class Metadata_type(db.Model):
             'fw_type': self.fw_type,
             'unit': self.unit,
         }
+
+class Ontology(db.Model):
+    __tablename__ = 'ontology'
+    ontology_id = db.Column('ontology_id', db.Integer, primary_key=True)
+    ontology_acc = db.Column('ontology_acc', db.VARCHAR(125))
+    label = db.Column('label', db.VARCHAR(125))
+    ontology_type_id = db.Column('ontology_type_id', db.Integer)
+
+    def json(self):
+        return {
+            'ontology_acc': self.ontology_acc,
+            'label': self.label,
+            'ontology_type_id': self.ontology_type_id,
+        }
+
+    sample_list = sqlalchemy.orm.relationship(
+        "Sample",
+        secondary="sample_to_ontology",
+        back_populates="ontology_list"
+    )
 
 class Ontology_type(db.Model):
     __tablename__ = 'ontology_type'
@@ -114,6 +276,44 @@ class Project(db.Model):
             'nt_file': self.nt_file,
         }
 
+    domain_list = sqlalchemy.orm.relationship(
+        "Domain",
+        secondary="project_to_domain",
+        back_populates="project_list"
+    )
+
+    investigator_list = sqlalchemy.orm.relationship(
+        "Investigator",
+        secondary="project_to_investigator",
+        back_populates="project_list"
+    )
+
+    project_group_list = sqlalchemy.orm.relationship(
+        "Project_group",
+        secondary="project_to_project_group",
+        back_populates="project_list"
+    )
+
+    protocol_list = sqlalchemy.orm.relationship(
+        "Protocol",
+        secondary="project_to_protocol",
+        back_populates="project_list"
+    )
+
+class Project_file(db.Model):
+    __tablename__ = 'project_file'
+    project_file_id = db.Column('project_file_id', db.Integer, primary_key=True)
+    project_id = db.Column('project_id', db.Integer)
+    project_file_type_id = db.Column('project_file_type_id', db.Integer)
+    file = db.Column('file', db.VARCHAR(255))
+
+    def json(self):
+        return {
+            'project_id': self.project_id,
+            'project_file_type_id': self.project_file_type_id,
+            'file': self.file,
+        }
+
 class Project_file_type(db.Model):
     __tablename__ = 'project_file_type'
     project_file_type_id = db.Column('project_file_type_id', db.Integer, primary_key=True)
@@ -138,255 +338,11 @@ class Project_group(db.Model):
             'url': self.url,
         }
 
-class Protocol(db.Model):
-    __tablename__ = 'protocol'
-    protocol_id = db.Column('protocol_id', db.Integer, primary_key=True)
-    protocol_name = db.Column('protocol_name', db.VARCHAR(255))
-    url = db.Column('url', db.VARCHAR(255))
-
-    def json(self):
-        return {
-            'protocol_name': self.protocol_name,
-            'url': self.url,
-        }
-
-class Pubchase(db.Model):
-    __tablename__ = 'pubchase'
-    pubchase_id = db.Column('pubchase_id', db.Integer, primary_key=True)
-    article_id = db.Column('article_id', db.Integer)
-    title = db.Column('title', db.VARCHAR(255))
-    journal_title = db.Column('journal_title', db.VARCHAR(255))
-    doi = db.Column('doi', db.VARCHAR(255))
-    authors = db.Column('authors', db.Text)
-    article_date = db.Column('article_date', db.DATE)
-    created_on = db.Column('created_on', db.DATE)
-    url = db.Column('url', db.Text)
-
-    def json(self):
-        return {
-            'article_id': self.article_id,
-            'title': self.title,
-            'journal_title': self.journal_title,
-            'doi': self.doi,
-            'authors': self.authors,
-            'article_date': self.article_date,
-            'created_on': self.created_on,
-            'url': self.url,
-        }
-
-class Pubchase_rec(db.Model):
-    __tablename__ = 'pubchase_rec'
-    pubchase_rec_id = db.Column('pubchase_rec_id', db.Integer, primary_key=True)
-    rec_date = db.Column('rec_date', db.DATETIME)
-    checksum = db.Column('checksum', db.VARCHAR(255))
-
-    def json(self):
-        return {
-            'rec_date': self.rec_date,
-            'checksum': self.checksum,
-        }
-
-class Query_log(db.Model):
-    __tablename__ = 'query_log'
-    query_log_id = db.Column('query_log_id', db.Integer, primary_key=True)
-    num_found = db.Column('num_found', db.INTEGER)
-    query = db.Column('query', db.TEXT)
-    params = db.Column('params', db.TEXT)
-    ip = db.Column('ip', db.TEXT)
-    user_id = db.Column('user_id', db.Integer)
-    time = db.Column('time', db.Float)
-    date = db.Column('date', db.TIMESTAMP)
-
-    def json(self):
-        return {
-            'num_found': self.num_found,
-            'query': self.query,
-            'params': self.params,
-            'ip': self.ip,
-            'user_id': self.user_id,
-            'time': self.time,
-            'date': self.date,
-        }
-
-class Reference(db.Model):
-    __tablename__ = 'reference'
-    reference_id = db.Column('reference_id', db.Integer, primary_key=True)
-    file = db.Column('file', db.VARCHAR(255))
-    name = db.Column('name', db.VARCHAR(100))
-    revision = db.Column('revision', db.TEXT)
-    length = db.Column('length', db.INTEGER)
-    seq_count = db.Column('seq_count', db.INTEGER)
-    build_date = db.Column('build_date', db.TEXT)
-    description = db.Column('description', db.TEXT)
-
-    def json(self):
-        return {
-            'file': self.file,
-            'name': self.name,
-            'revision': self.revision,
-            'length': self.length,
-            'seq_count': self.seq_count,
-            'build_date': self.build_date,
-            'description': self.description,
-        }
-
-class Sample_attr_type(db.Model):
-    __tablename__ = 'sample_attr_type'
-    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer, primary_key=True)
-    type = db.Column('type', db.VARCHAR(255))
-    url_template = db.Column('url_template', db.VARCHAR(255))
-    description = db.Column('description', db.Text)
-    category = db.Column('category', db.VARCHAR(100))
-
-    def json(self):
-        return {
-            'type': self.type,
-            'url_template': self.url_template,
-            'description': self.description,
-            'category': self.category,
-        }
-
-class Sample_file_type(db.Model):
-    __tablename__ = 'sample_file_type'
-    sample_file_type_id = db.Column('sample_file_type_id', db.Integer, primary_key=True)
-    type = db.Column('type', db.VARCHAR(255))
-
-    def json(self):
-        return {
-            'type': self.type,
-        }
-
-class Search(db.Model):
-    __tablename__ = 'search'
-    search_id = db.Column('search_id', db.Integer, primary_key=True)
-    table_name = db.Column('table_name', db.VARCHAR(100))
-    primary_key = db.Column('primary_key', db.INTEGER)
-    object_name = db.Column('object_name', db.VARCHAR(255))
-    search_text = db.Column('search_text', db.Text)
-
-    def json(self):
-        return {
-            'table_name': self.table_name,
-            'primary_key': self.primary_key,
-            'object_name': self.object_name,
-            'search_text': self.search_text,
-        }
-
-class User(db.Model):
-    __tablename__ = 'user'
-    user_id = db.Column('user_id', db.Integer, primary_key=True)
-    user_name = db.Column('user_name', db.VARCHAR(50))
-
-    def json(self):
-        return {
-            'user_name': self.user_name,
-        }
-
-class App_run(db.Model):
-    __tablename__ = 'app_run'
-    app_run_id = db.Column('app_run_id', db.Integer, primary_key=True)
-    app_id = db.Column('app_id', db.Integer)
-    user_id = db.Column('user_id', db.Integer)
-    app_ran_at = db.Column('app_ran_at', db.DATETIME)
-    params = db.Column('params', db.TEXT)
-
-    def json(self):
-        return {
-            'app_id': self.app_id,
-            'user_id': self.user_id,
-            'app_ran_at': self.app_ran_at,
-            'params': self.params,
-        }
-
-class Combined_assembly(db.Model):
-    __tablename__ = 'combined_assembly'
-    combined_assembly_id = db.Column('combined_assembly_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    assembly_name = db.Column('assembly_name', db.VARCHAR(255))
-    phylum = db.Column('phylum', db.VARCHAR(255))
-    clazz = db.Column('clazz', db.VARCHAR(255))
-    family = db.Column('family', db.VARCHAR(255))
-    genus = db.Column('genus', db.VARCHAR(255))
-    species = db.Column('species', db.VARCHAR(255))
-    strain = db.Column('strain', db.VARCHAR(255))
-    pcr_amp = db.Column('pcr_amp', db.VARCHAR(255))
-    annotations_file = db.Column('annotations_file', db.VARCHAR(255))
-    peptides_file = db.Column('peptides_file', db.VARCHAR(255))
-    nucleotides_file = db.Column('nucleotides_file', db.VARCHAR(255))
-    cds_file = db.Column('cds_file', db.VARCHAR(255))
-
-    def json(self):
-        return {
-            'project_id': self.project_id,
-            'assembly_name': self.assembly_name,
-            'phylum': self.phylum,
-            'clazz': self.clazz,
-            'family': self.family,
-            'genus': self.genus,
-            'species': self.species,
-            'strain': self.strain,
-            'pcr_amp': self.pcr_amp,
-            'annotations_file': self.annotations_file,
-            'peptides_file': self.peptides_file,
-            'nucleotides_file': self.nucleotides_file,
-            'cds_file': self.cds_file,
-        }
-
-class Ftp(db.Model):
-    __tablename__ = 'ftp'
-    ftp_id = db.Column('ftp_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    name = db.Column('name', db.VARCHAR(255))
-    path = db.Column('path', db.VARCHAR(255))
-    size = db.Column('size', db.VARCHAR(20))
-
-    def json(self):
-        return {
-            'project_id': self.project_id,
-            'name': self.name,
-            'path': self.path,
-            'size': self.size,
-        }
-
-class Login(db.Model):
-    __tablename__ = 'login'
-    login_id = db.Column('login_id', db.Integer, primary_key=True)
-    user_id = db.Column('user_id', db.Integer)
-    login_date = db.Column('login_date', db.DATETIME)
-
-    def json(self):
-        return {
-            'user_id': self.user_id,
-            'login_date': self.login_date,
-        }
-
-class Ontology(db.Model):
-    __tablename__ = 'ontology'
-    ontology_id = db.Column('ontology_id', db.Integer, primary_key=True)
-    ontology_acc = db.Column('ontology_acc', db.VARCHAR(125))
-    label = db.Column('label', db.VARCHAR(125))
-    ontology_type_id = db.Column('ontology_type_id', db.Integer)
-
-    def json(self):
-        return {
-            'ontology_acc': self.ontology_acc,
-            'label': self.label,
-            'ontology_type_id': self.ontology_type_id,
-        }
-
-class Project_file(db.Model):
-    __tablename__ = 'project_file'
-    project_file_id = db.Column('project_file_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    project_file_type_id = db.Column('project_file_type_id', db.Integer)
-    file = db.Column('file', db.VARCHAR(255))
-
-    def json(self):
-        return {
-            'project_id': self.project_id,
-            'project_file_type_id': self.project_file_type_id,
-            'file': self.file,
-        }
+    project_list = sqlalchemy.orm.relationship(
+        "Project",
+        secondary="project_to_project_group",
+        back_populates="project_group_list"
+    )
 
 class Project_page(db.Model):
     __tablename__ = 'project_page'
@@ -454,6 +410,60 @@ class Project_to_protocol(db.Model):
             'protocol_id': self.protocol_id,
         }
 
+class Protocol(db.Model):
+    __tablename__ = 'protocol'
+    protocol_id = db.Column('protocol_id', db.Integer, primary_key=True)
+    protocol_name = db.Column('protocol_name', db.VARCHAR(255))
+    url = db.Column('url', db.VARCHAR(255))
+
+    def json(self):
+        return {
+            'protocol_name': self.protocol_name,
+            'url': self.url,
+        }
+
+    project_list = sqlalchemy.orm.relationship(
+        "Project",
+        secondary="project_to_protocol",
+        back_populates="protocol_list"
+    )
+
+class Pubchase(db.Model):
+    __tablename__ = 'pubchase'
+    pubchase_id = db.Column('pubchase_id', db.Integer, primary_key=True)
+    article_id = db.Column('article_id', db.Integer)
+    title = db.Column('title', db.VARCHAR(255))
+    journal_title = db.Column('journal_title', db.VARCHAR(255))
+    doi = db.Column('doi', db.VARCHAR(255))
+    authors = db.Column('authors', db.Text)
+    article_date = db.Column('article_date', db.DATE)
+    created_on = db.Column('created_on', db.DATE)
+    url = db.Column('url', db.Text)
+
+    def json(self):
+        return {
+            'article_id': self.article_id,
+            'title': self.title,
+            'journal_title': self.journal_title,
+            'doi': self.doi,
+            'authors': self.authors,
+            'article_date': self.article_date,
+            'created_on': self.created_on,
+            'url': self.url,
+        }
+
+class Pubchase_rec(db.Model):
+    __tablename__ = 'pubchase_rec'
+    pubchase_rec_id = db.Column('pubchase_rec_id', db.Integer, primary_key=True)
+    rec_date = db.Column('rec_date', db.DATETIME)
+    checksum = db.Column('checksum', db.VARCHAR(255))
+
+    def json(self):
+        return {
+            'rec_date': self.rec_date,
+            'checksum': self.checksum,
+        }
+
 class Publication(db.Model):
     __tablename__ = 'publication'
     publication_id = db.Column('publication_id', db.Integer, primary_key=True)
@@ -478,16 +488,48 @@ class Publication(db.Model):
             'pub_date': self.pub_date,
         }
 
-class Sample_attr_type_alias(db.Model):
-    __tablename__ = 'sample_attr_type_alias'
-    sample_attr_type_alias_id = db.Column('sample_attr_type_alias_id', db.Integer, primary_key=True)
-    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer)
-    alias = db.Column('alias', db.VARCHAR(200))
+class Query_log(db.Model):
+    __tablename__ = 'query_log'
+    query_log_id = db.Column('query_log_id', db.Integer, primary_key=True)
+    num_found = db.Column('num_found', db.INTEGER)
+    query = db.Column('query', db.TEXT)
+    params = db.Column('params', db.TEXT)
+    ip = db.Column('ip', db.TEXT)
+    user_id = db.Column('user_id', db.Integer)
+    time = db.Column('time', db.Float)
+    date = db.Column('date', db.TIMESTAMP)
 
     def json(self):
         return {
-            'sample_attr_type_id': self.sample_attr_type_id,
-            'alias': self.alias,
+            'num_found': self.num_found,
+            'query': self.query,
+            'params': self.params,
+            'ip': self.ip,
+            'user_id': self.user_id,
+            'time': self.time,
+            'date': self.date,
+        }
+
+class Reference(db.Model):
+    __tablename__ = 'reference'
+    reference_id = db.Column('reference_id', db.Integer, primary_key=True)
+    file = db.Column('file', db.VARCHAR(255))
+    name = db.Column('name', db.VARCHAR(100))
+    revision = db.Column('revision', db.TEXT)
+    length = db.Column('length', db.INTEGER)
+    seq_count = db.Column('seq_count', db.INTEGER)
+    build_date = db.Column('build_date', db.TEXT)
+    description = db.Column('description', db.TEXT)
+
+    def json(self):
+        return {
+            'file': self.file,
+            'name': self.name,
+            'revision': self.revision,
+            'length': self.length,
+            'seq_count': self.seq_count,
+            'build_date': self.build_date,
+            'description': self.description,
         }
 
 class Sample(db.Model):
@@ -520,43 +562,23 @@ class Sample(db.Model):
             'url': self.url,
         }
 
-class Assembly(db.Model):
-    __tablename__ = 'assembly'
-    assembly_id = db.Column('assembly_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    assembly_code = db.Column('assembly_code', db.VARCHAR(255))
-    assembly_name = db.Column('assembly_name', db.TEXT)
-    organism = db.Column('organism', db.VARCHAR(255))
-    pep_file = db.Column('pep_file', db.VARCHAR(255))
-    nt_file = db.Column('nt_file', db.VARCHAR(255))
-    cds_file = db.Column('cds_file', db.VARCHAR(255))
-    description = db.Column('description', db.TEXT)
-    sample_id = db.Column('sample_id', db.Integer)
+    combined_assembly_list = sqlalchemy.orm.relationship(
+        "Combined_assembly",
+        secondary="combined_assembly_to_sample",
+        back_populates="sample_list"
+    )
 
-    def json(self):
-        return {
-            'project_id': self.project_id,
-            'assembly_code': self.assembly_code,
-            'assembly_name': self.assembly_name,
-            'organism': self.organism,
-            'pep_file': self.pep_file,
-            'nt_file': self.nt_file,
-            'cds_file': self.cds_file,
-            'description': self.description,
-            'sample_id': self.sample_id,
-        }
+    investigator_list = sqlalchemy.orm.relationship(
+        "Investigator",
+        secondary="sample_to_investigator",
+        back_populates="sample_list"
+    )
 
-class Combined_assembly_to_sample(db.Model):
-    __tablename__ = 'combined_assembly_to_sample'
-    combined_assembly_to_sample_id = db.Column('combined_assembly_to_sample_id', db.Integer, primary_key=True)
-    combined_assembly_id = db.Column('combined_assembly_id', db.Integer)
-    sample_id = db.Column('sample_id', db.Integer)
-
-    def json(self):
-        return {
-            'combined_assembly_id': self.combined_assembly_id,
-            'sample_id': self.sample_id,
-        }
+    ontology_list = sqlalchemy.orm.relationship(
+        "Ontology",
+        secondary="sample_to_ontology",
+        back_populates="sample_list"
+    )
 
 class Sample_attr(db.Model):
     __tablename__ = 'sample_attr'
@@ -572,6 +594,34 @@ class Sample_attr(db.Model):
             'sample_id': self.sample_id,
             'attr_value': self.attr_value,
             'unit': self.unit,
+        }
+
+class Sample_attr_type(db.Model):
+    __tablename__ = 'sample_attr_type'
+    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer, primary_key=True)
+    type = db.Column('type', db.VARCHAR(255))
+    url_template = db.Column('url_template', db.VARCHAR(255))
+    description = db.Column('description', db.Text)
+    category = db.Column('category', db.VARCHAR(100))
+
+    def json(self):
+        return {
+            'type': self.type,
+            'url_template': self.url_template,
+            'description': self.description,
+            'category': self.category,
+        }
+
+class Sample_attr_type_alias(db.Model):
+    __tablename__ = 'sample_attr_type_alias'
+    sample_attr_type_alias_id = db.Column('sample_attr_type_alias_id', db.Integer, primary_key=True)
+    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer)
+    alias = db.Column('alias', db.VARCHAR(200))
+
+    def json(self):
+        return {
+            'sample_attr_type_id': self.sample_attr_type_id,
+            'alias': self.alias,
         }
 
 class Sample_file(db.Model):
@@ -596,6 +646,16 @@ class Sample_file(db.Model):
             'pct_gc': self.pct_gc,
         }
 
+class Sample_file_type(db.Model):
+    __tablename__ = 'sample_file_type'
+    sample_file_type_id = db.Column('sample_file_type_id', db.Integer, primary_key=True)
+    type = db.Column('type', db.VARCHAR(255))
+
+    def json(self):
+        return {
+            'type': self.type,
+        }
+
 class Sample_to_investigator(db.Model):
     __tablename__ = 'sample_to_investigator'
     sample_to_investigator_id = db.Column('sample_to_investigator_id', db.Integer, primary_key=True)
@@ -618,5 +678,31 @@ class Sample_to_ontology(db.Model):
         return {
             'sample_id': self.sample_id,
             'ontology_id': self.ontology_id,
+        }
+
+class Search(db.Model):
+    __tablename__ = 'search'
+    search_id = db.Column('search_id', db.Integer, primary_key=True)
+    table_name = db.Column('table_name', db.VARCHAR(100))
+    primary_key = db.Column('primary_key', db.INTEGER)
+    object_name = db.Column('object_name', db.VARCHAR(255))
+    search_text = db.Column('search_text', db.Text)
+
+    def json(self):
+        return {
+            'table_name': self.table_name,
+            'primary_key': self.primary_key,
+            'object_name': self.object_name,
+            'search_text': self.search_text,
+        }
+
+class User(db.Model):
+    __tablename__ = 'user'
+    user_id = db.Column('user_id', db.Integer, primary_key=True)
+    user_name = db.Column('user_name', db.VARCHAR(50))
+
+    def json(self):
+        return {
+            'user_name': self.user_name,
         }
 

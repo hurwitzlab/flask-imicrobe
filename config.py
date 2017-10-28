@@ -12,6 +12,10 @@ class Config:
 
     SECRET_KEY = os.environ.get('IMICROBE_FLASK_SESSION_SECRET_KEY')
 
+    BASIC_AUTH_USERNAME = 'imicrobe-admin'
+    BASIC_AUTH_PASSWORD = os.environ.get('IMICROBE_ADMIN_PW')
+    BASIC_AUTH_FORCE = True
+
     def init_app(self, app):
         pass
 

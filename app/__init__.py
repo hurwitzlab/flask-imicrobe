@@ -3,6 +3,7 @@ import os
 from flask import Flask
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+from flask_basicauth import BasicAuth
 from flask_sqlalchemy import SQLAlchemy
 
 from config import configs
@@ -20,6 +21,7 @@ def create_app(config_name):
 
     configs[config_name].init_app(app_)
 
+    basic_auth = BasicAuth(app_)
     db.init_app(app_)
 
     from .main import main as main_blueprint

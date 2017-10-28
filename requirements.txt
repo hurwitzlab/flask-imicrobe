@@ -1,6 +1,7 @@
 sqlalchemy
 flask
 flask-admin
+flask-basicauth
 flask-script
 flask-sqlalchemy
 pymysql

@@ -1,12 +1,30 @@
-import sqlalchemy
+import sqlalchemy as sa
+import sqlalchemy.dialects.mysql as mysql
 
 from app import db
 
+
 class App(db.Model):
     __tablename__ = 'app'
-    app_id = db.Column('app_id', db.Integer, primary_key=True)
-    app_name = db.Column('app_name', db.VARCHAR(50))
-    is_active = db.Column('is_active', db.INTEGER)
+
+    app_id = sa.Column('app_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    app_name = sa.Column('app_name', mysql.VARCHAR(50))  # column.type was 'VARCHAR(50)'
+
+    is_active = sa.Column('is_active', mysql.TINYINT(4))  # column.type was 'TINYINT(4)'
+
+
+    app_data_type_list = sa.orm.relationship(
+        "App_data_type",
+        secondary="app_to_app_data_type",
+        back_populates="app_list"
+    )
+
+    app_tag_list = sa.orm.relationship(
+        "App_tag",
+        secondary="app_to_app_tag",
+        back_populates="app_list"
+    )
 
     def json(self):
         return {
@@ -14,13 +32,48 @@ class App(db.Model):
             'is_active': self.is_active,
         }
 
+
+class App_data_type(db.Model):
+    __tablename__ = 'app_data_type'
+
+    app_data_type_id = sa.Column('app_data_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    name = sa.Column('name', mysql.VARCHAR(50))  # column.type was 'VARCHAR(50)'
+
+    alias = sa.Column('alias', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+
+    app_list = sa.orm.relationship(
+        "App",
+        secondary="app_to_app_data_type",
+        back_populates="app_data_type_list"
+    )
+
+    def json(self):
+        return {
+            'name': self.name,
+            'alias': self.alias,
+        }
+
+
 class App_run(db.Model):
     __tablename__ = 'app_run'
-    app_run_id = db.Column('app_run_id', db.Integer, primary_key=True)
-    app_id = db.Column('app_id', db.Integer)
-    user_id = db.Column('user_id', db.Integer)
-    app_ran_at = db.Column('app_ran_at', db.DATETIME)
-    params = db.Column('params', db.TEXT)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['app_id'], ['app.app_id']),
+        sa.ForeignKeyConstraint(['user_id'], ['user.user_id'])
+    )
+
+    app_run_id = sa.Column('app_run_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    app_id = sa.Column('app_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    user_id = sa.Column('user_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    app_ran_at = sa.Column('app_ran_at', sa.DateTime)  # column.type was 'DATETIME'
+
+    params = sa.Column('params', mysql.TEXT())  # column.type was 'TEXT'
+
 
     def json(self):
         return {
@@ -30,18 +83,99 @@ class App_run(db.Model):
             'params': self.params,
         }
 
+
+class App_tag(db.Model):
+    __tablename__ = 'app_tag'
+
+    app_tag_id = sa.Column('app_tag_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    value = sa.Column('value', mysql.VARCHAR(50))  # column.type was 'VARCHAR(50)'
+
+
+    app_list = sa.orm.relationship(
+        "App",
+        secondary="app_to_app_tag",
+        back_populates="app_tag_list"
+    )
+
+    def json(self):
+        return {
+            'value': self.value,
+        }
+
+
+class App_to_app_data_type(db.Model):
+    __tablename__ = 'app_to_app_data_type'
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['app_id'], ['app.app_id']),
+        sa.ForeignKeyConstraint(['app_data_type_id'], ['app_data_type.app_data_type_id'])
+    )
+
+    app_to_app_data_type_id = sa.Column('app_to_app_data_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    app_id = sa.Column('app_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    app_data_type_id = sa.Column('app_data_type_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+
+    def json(self):
+        return {
+            'app_id': self.app_id,
+            'app_data_type_id': self.app_data_type_id,
+        }
+
+
+class App_to_app_tag(db.Model):
+    __tablename__ = 'app_to_app_tag'
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['app_id'], ['app.app_id']),
+        sa.ForeignKeyConstraint(['app_tag_id'], ['app_tag.app_tag_id'])
+    )
+
+    app_to_app_tag_id = sa.Column('app_to_app_tag_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    app_id = sa.Column('app_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    app_tag_id = sa.Column('app_tag_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+
+    def json(self):
+        return {
+            'app_id': self.app_id,
+            'app_tag_id': self.app_tag_id,
+        }
+
+
 class Assembly(db.Model):
     __tablename__ = 'assembly'
-    assembly_id = db.Column('assembly_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    assembly_code = db.Column('assembly_code', db.VARCHAR(255))
-    assembly_name = db.Column('assembly_name', db.TEXT)
-    organism = db.Column('organism', db.VARCHAR(255))
-    pep_file = db.Column('pep_file', db.VARCHAR(255))
-    nt_file = db.Column('nt_file', db.VARCHAR(255))
-    cds_file = db.Column('cds_file', db.VARCHAR(255))
-    description = db.Column('description', db.TEXT)
-    sample_id = db.Column('sample_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id'])
+    )
+
+    assembly_id = sa.Column('assembly_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    assembly_code = sa.Column('assembly_code', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    assembly_name = sa.Column('assembly_name', mysql.TEXT())  # column.type was 'TEXT'
+
+    organism = sa.Column('organism', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    pep_file = sa.Column('pep_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    nt_file = sa.Column('nt_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    cds_file = sa.Column('cds_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    description = sa.Column('description', mysql.TEXT())  # column.type was 'TEXT'
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -56,29 +190,55 @@ class Assembly(db.Model):
             'sample_id': self.sample_id,
         }
 
+
 class Combined_assembly(db.Model):
     __tablename__ = 'combined_assembly'
-    combined_assembly_id = db.Column('combined_assembly_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    assembly_name = db.Column('assembly_name', db.VARCHAR(255))
-    phylum = db.Column('phylum', db.VARCHAR(255))
-    clazz = db.Column('clazz', db.VARCHAR(255))
-    family = db.Column('family', db.VARCHAR(255))
-    genus = db.Column('genus', db.VARCHAR(255))
-    species = db.Column('species', db.VARCHAR(255))
-    strain = db.Column('strain', db.VARCHAR(255))
-    pcr_amp = db.Column('pcr_amp', db.VARCHAR(255))
-    annotations_file = db.Column('annotations_file', db.VARCHAR(255))
-    peptides_file = db.Column('peptides_file', db.VARCHAR(255))
-    nucleotides_file = db.Column('nucleotides_file', db.VARCHAR(255))
-    cds_file = db.Column('cds_file', db.VARCHAR(255))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+    )
+
+    combined_assembly_id = sa.Column('combined_assembly_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    assembly_name = sa.Column('assembly_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    phylum = sa.Column('phylum', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    class_ = sa.Column('class', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    family = sa.Column('family', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    genus = sa.Column('genus', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    species = sa.Column('species', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    strain = sa.Column('strain', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    pcr_amp = sa.Column('pcr_amp', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    annotations_file = sa.Column('annotations_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    peptides_file = sa.Column('peptides_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    nucleotides_file = sa.Column('nucleotides_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    cds_file = sa.Column('cds_file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+
+    sample_list = sa.orm.relationship(
+        "Sample",
+        secondary="combined_assembly_to_sample",
+        back_populates="combined_assembly_list"
+    )
 
     def json(self):
         return {
             'project_id': self.project_id,
             'assembly_name': self.assembly_name,
             'phylum': self.phylum,
-            'clazz': self.clazz,
+            'class': self.class_,
             'family': self.family,
             'genus': self.genus,
             'species': self.species,
@@ -90,17 +250,21 @@ class Combined_assembly(db.Model):
             'cds_file': self.cds_file,
         }
 
-    sample_list = sqlalchemy.orm.relationship(
-        "Sample",
-        secondary="combined_assembly_to_sample",
-        back_populates="combined_assembly_list"
-    )
 
 class Combined_assembly_to_sample(db.Model):
     __tablename__ = 'combined_assembly_to_sample'
-    combined_assembly_to_sample_id = db.Column('combined_assembly_to_sample_id', db.Integer, primary_key=True)
-    combined_assembly_id = db.Column('combined_assembly_id', db.Integer)
-    sample_id = db.Column('sample_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['combined_assembly_id'], ['combined_assembly.combined_assembly_id']),
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id'])
+    )
+
+    combined_assembly_to_sample_id = sa.Column('combined_assembly_to_sample_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    combined_assembly_id = sa.Column('combined_assembly_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -108,29 +272,44 @@ class Combined_assembly_to_sample(db.Model):
             'sample_id': self.sample_id,
         }
 
+
 class Domain(db.Model):
     __tablename__ = 'domain'
-    domain_id = db.Column('domain_id', db.Integer, primary_key=True)
-    domain_name = db.Column('domain_name', db.VARCHAR(50))
+
+    domain_id = sa.Column('domain_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    domain_name = sa.Column('domain_name', mysql.VARCHAR(50))  # column.type was 'VARCHAR(50)'
+
+
+    project_list = sa.orm.relationship(
+        "Project",
+        secondary="project_to_domain",
+        back_populates="domain_list"
+    )
 
     def json(self):
         return {
             'domain_name': self.domain_name,
         }
 
-    project_list = sqlalchemy.orm.relationship(
-        "Project",
-        secondary="project_to_domain",
-        back_populates="domain_list"
-    )
 
 class Ftp(db.Model):
     __tablename__ = 'ftp'
-    ftp_id = db.Column('ftp_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    name = db.Column('name', db.VARCHAR(255))
-    path = db.Column('path', db.VARCHAR(255))
-    size = db.Column('size', db.VARCHAR(20))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+    )
+
+    ftp_id = sa.Column('ftp_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    name = sa.Column('name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    path = sa.Column('path', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    size = sa.Column('size', mysql.VARCHAR(20))  # column.type was 'VARCHAR(20)'
+
 
     def json(self):
         return {
@@ -140,12 +319,30 @@ class Ftp(db.Model):
             'size': self.size,
         }
 
+
 class Investigator(db.Model):
     __tablename__ = 'investigator'
-    investigator_id = db.Column('investigator_id', db.Integer, primary_key=True)
-    investigator_name = db.Column('investigator_name', db.VARCHAR(255))
-    institution = db.Column('institution', db.VARCHAR(255))
-    url = db.Column('url', db.VARCHAR(255))
+
+    investigator_id = sa.Column('investigator_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    investigator_name = sa.Column('investigator_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    institution = sa.Column('institution', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    url = sa.Column('url', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+
+    project_list = sa.orm.relationship(
+        "Project",
+        secondary="project_to_investigator",
+        back_populates="investigator_list"
+    )
+
+    sample_list = sa.orm.relationship(
+        "Sample",
+        secondary="sample_to_investigator",
+        back_populates="investigator_list"
+    )
 
     def json(self):
         return {
@@ -154,23 +351,20 @@ class Investigator(db.Model):
             'url': self.url,
         }
 
-    project_list = sqlalchemy.orm.relationship(
-        "Project",
-        secondary="project_to_investigator",
-        back_populates="investigator_list"
-    )
-
-    sample_list = sqlalchemy.orm.relationship(
-        "Sample",
-        secondary="sample_to_investigator",
-        back_populates="investigator_list"
-    )
 
 class Login(db.Model):
     __tablename__ = 'login'
-    login_id = db.Column('login_id', db.Integer, primary_key=True)
-    user_id = db.Column('user_id', db.Integer)
-    login_date = db.Column('login_date', db.DATETIME)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['user_id'], ['user.user_id']),
+    )
+
+    login_id = sa.Column('login_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    user_id = sa.Column('user_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    login_date = sa.Column('login_date', sa.DateTime)  # column.type was 'DATETIME'
+
 
     def json(self):
         return {
@@ -178,20 +372,34 @@ class Login(db.Model):
             'login_date': self.login_date,
         }
 
+
 class Metadata_type(db.Model):
     __tablename__ = 'metadata_type'
-    metadata_type_id = db.Column('metadata_type_id', db.Integer, primary_key=True)
-    category = db.Column('category', db.VARCHAR(64))
-    category_type = db.Column('category_type', db.VARCHAR(32))
-    qiime_tag = db.Column('qiime_tag', db.VARCHAR(128))
-    mgrast_tag = db.Column('mgrast_tag', db.VARCHAR(128))
-    tag = db.Column('tag', db.VARCHAR(128))
-    definition = db.Column('definition', db.TEXT)
-    required = db.Column('required', db.INTEGER)
-    mixs = db.Column('mixs', db.INTEGER)
-    type = db.Column('type', db.TEXT)
-    fw_type = db.Column('fw_type', db.TEXT)
-    unit = db.Column('unit', db.TEXT)
+
+    metadata_type_id = sa.Column('metadata_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    category = sa.Column('category', mysql.VARCHAR(64))  # column.type was 'VARCHAR(64)'
+
+    category_type = sa.Column('category_type', mysql.VARCHAR(32))  # column.type was 'VARCHAR(32)'
+
+    qiime_tag = sa.Column('qiime_tag', mysql.VARCHAR(128))  # column.type was 'VARCHAR(128)'
+
+    mgrast_tag = sa.Column('mgrast_tag', mysql.VARCHAR(128))  # column.type was 'VARCHAR(128)'
+
+    tag = sa.Column('tag', mysql.VARCHAR(128))  # column.type was 'VARCHAR(128)'
+
+    definition = sa.Column('definition', mysql.TEXT())  # column.type was 'TEXT'
+
+    required = sa.Column('required', mysql.TINYINT(4))  # column.type was 'TINYINT(4)'
+
+    mixs = sa.Column('mixs', mysql.TINYINT(4))  # column.type was 'TINYINT(4)'
+
+    type = sa.Column('type', mysql.TEXT())  # column.type was 'TEXT'
+
+    fw_type = sa.Column('fw_type', mysql.TEXT())  # column.type was 'TEXT'
+
+    unit = sa.Column('unit', mysql.TEXT())  # column.type was 'TEXT'
+
 
     def json(self):
         return {
@@ -208,12 +416,28 @@ class Metadata_type(db.Model):
             'unit': self.unit,
         }
 
+
 class Ontology(db.Model):
     __tablename__ = 'ontology'
-    ontology_id = db.Column('ontology_id', db.Integer, primary_key=True)
-    ontology_acc = db.Column('ontology_acc', db.VARCHAR(125))
-    label = db.Column('label', db.VARCHAR(125))
-    ontology_type_id = db.Column('ontology_type_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['ontology_type_id'], ['ontology_type.ontology_type_id']),
+    )
+
+    ontology_id = sa.Column('ontology_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    ontology_acc = sa.Column('ontology_acc', mysql.VARCHAR(125))  # column.type was 'VARCHAR(125)'
+
+    label = sa.Column('label', mysql.VARCHAR(125))  # column.type was 'VARCHAR(125)'
+
+    ontology_type_id = sa.Column('ontology_type_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+
+    sample_list = sa.orm.relationship(
+        "Sample",
+        secondary="sample_to_ontology",
+        back_populates="ontology_list"
+    )
 
     def json(self):
         return {
@@ -222,17 +446,16 @@ class Ontology(db.Model):
             'ontology_type_id': self.ontology_type_id,
         }
 
-    sample_list = sqlalchemy.orm.relationship(
-        "Sample",
-        secondary="sample_to_ontology",
-        back_populates="ontology_list"
-    )
 
 class Ontology_type(db.Model):
     __tablename__ = 'ontology_type'
-    ontology_type_id = db.Column('ontology_type_id', db.Integer, primary_key=True)
-    type = db.Column('type', db.VARCHAR(256))
-    url_template = db.Column('url_template', db.VARCHAR(256))
+
+    ontology_type_id = sa.Column('ontology_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    type = sa.Column('type', mysql.VARCHAR(256))  # column.type was 'VARCHAR(256)'
+
+    url_template = sa.Column('url_template', mysql.VARCHAR(256))  # column.type was 'VARCHAR(256)'
+
 
     def json(self):
         return {
@@ -240,23 +463,64 @@ class Ontology_type(db.Model):
             'url_template': self.url_template,
         }
 
+
 class Project(db.Model):
     __tablename__ = 'project'
-    project_id = db.Column('project_id', db.Integer, primary_key=True)
-    project_code = db.Column('project_code', db.VARCHAR(255))
-    project_name = db.Column('project_name', db.VARCHAR(255))
-    pi = db.Column('pi', db.VARCHAR(255))
-    institution = db.Column('institution', db.VARCHAR(255))
-    project_type = db.Column('project_type', db.VARCHAR(255))
-    description = db.Column('description', db.TEXT)
-    url = db.Column('url', db.VARCHAR(255))
-    read_file = db.Column('read_file', db.VARCHAR(100))
-    meta_file = db.Column('meta_file', db.VARCHAR(100))
-    assembly_file = db.Column('assembly_file', db.VARCHAR(100))
-    peptide_file = db.Column('peptide_file', db.VARCHAR(100))
-    email = db.Column('email', db.VARCHAR(255))
-    read_pep_file = db.Column('read_pep_file', db.VARCHAR(100))
-    nt_file = db.Column('nt_file', db.VARCHAR(100))
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_code = sa.Column('project_code', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    project_name = sa.Column('project_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    pi = sa.Column('pi', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    institution = sa.Column('institution', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    project_type = sa.Column('project_type', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    description = sa.Column('description', mysql.TEXT())  # column.type was 'TEXT'
+
+    url = sa.Column('url', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    read_file = sa.Column('read_file', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    meta_file = sa.Column('meta_file', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    assembly_file = sa.Column('assembly_file', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    peptide_file = sa.Column('peptide_file', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    email = sa.Column('email', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    read_pep_file = sa.Column('read_pep_file', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    nt_file = sa.Column('nt_file', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+
+    domain_list = sa.orm.relationship(
+        "Domain",
+        secondary="project_to_domain",
+        back_populates="project_list"
+    )
+
+    investigator_list = sa.orm.relationship(
+        "Investigator",
+        secondary="project_to_investigator",
+        back_populates="project_list"
+    )
+
+    project_group_list = sa.orm.relationship(
+        "Project_group",
+        secondary="project_to_project_group",
+        back_populates="project_list"
+    )
+
+    protocol_list = sa.orm.relationship(
+        "Protocol",
+        secondary="project_to_protocol",
+        back_populates="project_list"
+    )
 
     def json(self):
         return {
@@ -276,36 +540,23 @@ class Project(db.Model):
             'nt_file': self.nt_file,
         }
 
-    domain_list = sqlalchemy.orm.relationship(
-        "Domain",
-        secondary="project_to_domain",
-        back_populates="project_list"
-    )
-
-    investigator_list = sqlalchemy.orm.relationship(
-        "Investigator",
-        secondary="project_to_investigator",
-        back_populates="project_list"
-    )
-
-    project_group_list = sqlalchemy.orm.relationship(
-        "Project_group",
-        secondary="project_to_project_group",
-        back_populates="project_list"
-    )
-
-    protocol_list = sqlalchemy.orm.relationship(
-        "Protocol",
-        secondary="project_to_protocol",
-        back_populates="project_list"
-    )
 
 class Project_file(db.Model):
     __tablename__ = 'project_file'
-    project_file_id = db.Column('project_file_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    project_file_type_id = db.Column('project_file_type_id', db.Integer)
-    file = db.Column('file', db.VARCHAR(255))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_file_type_id'], ['project_file_type.project_file_type_id']),
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id'])
+    )
+
+    project_file_id = sa.Column('project_file_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    project_file_type_id = sa.Column('project_file_type_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    file = sa.Column('file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
 
     def json(self):
         return {
@@ -314,22 +565,38 @@ class Project_file(db.Model):
             'file': self.file,
         }
 
+
 class Project_file_type(db.Model):
     __tablename__ = 'project_file_type'
-    project_file_type_id = db.Column('project_file_type_id', db.Integer, primary_key=True)
-    type = db.Column('type', db.VARCHAR(255))
+
+    project_file_type_id = sa.Column('project_file_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    type = sa.Column('type', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
 
     def json(self):
         return {
             'type': self.type,
         }
 
+
 class Project_group(db.Model):
     __tablename__ = 'project_group'
-    project_group_id = db.Column('project_group_id', db.Integer, primary_key=True)
-    group_name = db.Column('group_name', db.VARCHAR(255))
-    description = db.Column('description', db.TEXT)
-    url = db.Column('url', db.VARCHAR(255))
+
+    project_group_id = sa.Column('project_group_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    group_name = sa.Column('group_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    description = sa.Column('description', mysql.TEXT())  # column.type was 'TEXT'
+
+    url = sa.Column('url', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+
+    project_list = sa.orm.relationship(
+        "Project",
+        secondary="project_to_project_group",
+        back_populates="project_group_list"
+    )
 
     def json(self):
         return {
@@ -338,20 +605,26 @@ class Project_group(db.Model):
             'url': self.url,
         }
 
-    project_list = sqlalchemy.orm.relationship(
-        "Project",
-        secondary="project_to_project_group",
-        back_populates="project_group_list"
-    )
 
 class Project_page(db.Model):
     __tablename__ = 'project_page'
-    project_page_id = db.Column('project_page_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    title = db.Column('title', db.VARCHAR(255))
-    contents = db.Column('contents', db.TEXT)
-    display_order = db.Column('display_order', db.INTEGER)
-    format = db.Column('format', db.Enum)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+    )
+
+    project_page_id = sa.Column('project_page_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    title = sa.Column('title', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    contents = sa.Column('contents', mysql.TEXT())  # column.type was 'TEXT'
+
+    display_order = sa.Column('display_order', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+    format = sa.Column('format', mysql.ENUM('html','markdown'))  # column.type was 'ENUM('html','markdown')'
+
 
     def json(self):
         return {
@@ -362,11 +635,21 @@ class Project_page(db.Model):
             'format': self.format,
         }
 
+
 class Project_to_domain(db.Model):
     __tablename__ = 'project_to_domain'
-    project_to_domain_id = db.Column('project_to_domain_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    domain_id = db.Column('domain_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['domain_id'], ['domain.domain_id']),
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id'])
+    )
+
+    project_to_domain_id = sa.Column('project_to_domain_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    domain_id = sa.Column('domain_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -374,11 +657,21 @@ class Project_to_domain(db.Model):
             'domain_id': self.domain_id,
         }
 
+
 class Project_to_investigator(db.Model):
     __tablename__ = 'project_to_investigator'
-    project_to_investigator_id = db.Column('project_to_investigator_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    investigator_id = db.Column('investigator_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+        sa.ForeignKeyConstraint(['investigator_id'], ['investigator.investigator_id'])
+    )
+
+    project_to_investigator_id = sa.Column('project_to_investigator_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    investigator_id = sa.Column('investigator_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -386,11 +679,21 @@ class Project_to_investigator(db.Model):
             'investigator_id': self.investigator_id,
         }
 
+
 class Project_to_project_group(db.Model):
     __tablename__ = 'project_to_project_group'
-    project_to_project_group_id = db.Column('project_to_project_group_id', db.Integer, primary_key=True)
-    project_group_id = db.Column('project_group_id', db.Integer)
-    project_id = db.Column('project_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_group_id'], ['project_group.project_group_id']),
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id'])
+    )
+
+    project_to_project_group_id = sa.Column('project_to_project_group_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_group_id = sa.Column('project_group_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -398,11 +701,21 @@ class Project_to_project_group(db.Model):
             'project_id': self.project_id,
         }
 
+
 class Project_to_protocol(db.Model):
     __tablename__ = 'project_to_protocol'
-    project_to_protocol_id = db.Column('project_to_protocol_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    protocol_id = db.Column('protocol_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['protocol_id'], ['protocol.protocol_id']),
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id'])
+    )
+
+    project_to_protocol_id = sa.Column('project_to_protocol_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    protocol_id = sa.Column('protocol_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -410,11 +723,22 @@ class Project_to_protocol(db.Model):
             'protocol_id': self.protocol_id,
         }
 
+
 class Protocol(db.Model):
     __tablename__ = 'protocol'
-    protocol_id = db.Column('protocol_id', db.Integer, primary_key=True)
-    protocol_name = db.Column('protocol_name', db.VARCHAR(255))
-    url = db.Column('url', db.VARCHAR(255))
+
+    protocol_id = sa.Column('protocol_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    protocol_name = sa.Column('protocol_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    url = sa.Column('url', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+
+    project_list = sa.orm.relationship(
+        "Project",
+        secondary="project_to_protocol",
+        back_populates="protocol_list"
+    )
 
     def json(self):
         return {
@@ -422,23 +746,28 @@ class Protocol(db.Model):
             'url': self.url,
         }
 
-    project_list = sqlalchemy.orm.relationship(
-        "Project",
-        secondary="project_to_protocol",
-        back_populates="protocol_list"
-    )
 
 class Pubchase(db.Model):
     __tablename__ = 'pubchase'
-    pubchase_id = db.Column('pubchase_id', db.Integer, primary_key=True)
-    article_id = db.Column('article_id', db.Integer)
-    title = db.Column('title', db.VARCHAR(255))
-    journal_title = db.Column('journal_title', db.VARCHAR(255))
-    doi = db.Column('doi', db.VARCHAR(255))
-    authors = db.Column('authors', db.Text)
-    article_date = db.Column('article_date', db.DATE)
-    created_on = db.Column('created_on', db.DATE)
-    url = db.Column('url', db.Text)
+
+    pubchase_id = sa.Column('pubchase_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    article_id = sa.Column('article_id', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+    title = sa.Column('title', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    journal_title = sa.Column('journal_title', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    doi = sa.Column('doi', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    authors = sa.Column('authors', mysql.MEDIUMTEXT())  # column.type was 'MEDIUMTEXT'
+
+    article_date = sa.Column('article_date', sa.Date)  # column.type was 'DATE'
+
+    created_on = sa.Column('created_on', sa.Date)  # column.type was 'DATE'
+
+    url = sa.Column('url', mysql.MEDIUMTEXT())  # column.type was 'MEDIUMTEXT'
+
 
     def json(self):
         return {
@@ -452,11 +781,16 @@ class Pubchase(db.Model):
             'url': self.url,
         }
 
+
 class Pubchase_rec(db.Model):
     __tablename__ = 'pubchase_rec'
-    pubchase_rec_id = db.Column('pubchase_rec_id', db.Integer, primary_key=True)
-    rec_date = db.Column('rec_date', db.DATETIME)
-    checksum = db.Column('checksum', db.VARCHAR(255))
+
+    pubchase_rec_id = sa.Column('pubchase_rec_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    rec_date = sa.Column('rec_date', sa.DateTime)  # column.type was 'DATETIME'
+
+    checksum = sa.Column('checksum', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
 
     def json(self):
         return {
@@ -464,17 +798,32 @@ class Pubchase_rec(db.Model):
             'checksum': self.checksum,
         }
 
+
 class Publication(db.Model):
     __tablename__ = 'publication'
-    publication_id = db.Column('publication_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    pub_code = db.Column('pub_code', db.VARCHAR(255))
-    doi = db.Column('doi', db.TEXT)
-    author = db.Column('author', db.TEXT)
-    title = db.Column('title', db.VARCHAR(255))
-    pubmed_id = db.Column('pubmed_id', db.Integer)
-    journal = db.Column('journal', db.TEXT)
-    pub_date = db.Column('pub_date', db.TEXT)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+    )
+
+    publication_id = sa.Column('publication_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    pub_code = sa.Column('pub_code', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    doi = sa.Column('doi', mysql.TEXT())  # column.type was 'TEXT'
+
+    author = sa.Column('author', mysql.TEXT())  # column.type was 'TEXT'
+
+    title = sa.Column('title', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    pubmed_id = sa.Column('pubmed_id', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+    journal = sa.Column('journal', mysql.TEXT())  # column.type was 'TEXT'
+
+    pub_date = sa.Column('pub_date', mysql.TEXT())  # column.type was 'TEXT'
+
 
     def json(self):
         return {
@@ -488,16 +837,26 @@ class Publication(db.Model):
             'pub_date': self.pub_date,
         }
 
+
 class Query_log(db.Model):
     __tablename__ = 'query_log'
-    query_log_id = db.Column('query_log_id', db.Integer, primary_key=True)
-    num_found = db.Column('num_found', db.INTEGER)
-    query = db.Column('query', db.TEXT)
-    params = db.Column('params', db.TEXT)
-    ip = db.Column('ip', db.TEXT)
-    user_id = db.Column('user_id', db.Integer)
-    time = db.Column('time', db.Float)
-    date = db.Column('date', db.TIMESTAMP)
+
+    query_log_id = sa.Column('query_log_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    num_found = sa.Column('num_found', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+    query = sa.Column('query', mysql.TEXT())  # column.type was 'TEXT'
+
+    params = sa.Column('params', mysql.TEXT())  # column.type was 'TEXT'
+
+    ip = sa.Column('ip', mysql.TEXT())  # column.type was 'TEXT'
+
+    user_id = sa.Column('user_id', mysql.TEXT())  # column.type was 'TEXT'
+
+    time = sa.Column('time', sa.Float)  # column.type was 'DOUBLE'
+
+    date = sa.Column('date', mysql.TIMESTAMP)  # column.type was 'TIMESTAMP'
+
 
     def json(self):
         return {
@@ -510,16 +869,26 @@ class Query_log(db.Model):
             'date': self.date,
         }
 
+
 class Reference(db.Model):
     __tablename__ = 'reference'
-    reference_id = db.Column('reference_id', db.Integer, primary_key=True)
-    file = db.Column('file', db.VARCHAR(255))
-    name = db.Column('name', db.VARCHAR(100))
-    revision = db.Column('revision', db.TEXT)
-    length = db.Column('length', db.INTEGER)
-    seq_count = db.Column('seq_count', db.INTEGER)
-    build_date = db.Column('build_date', db.TEXT)
-    description = db.Column('description', db.TEXT)
+
+    reference_id = sa.Column('reference_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    file = sa.Column('file', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    name = sa.Column('name', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    revision = sa.Column('revision', mysql.TEXT())  # column.type was 'TEXT'
+
+    length = sa.Column('length', mysql.BIGINT(unsigned=True))  # column.type was 'BIGINT(20) UNSIGNED'
+
+    seq_count = sa.Column('seq_count', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    build_date = sa.Column('build_date', mysql.TEXT())  # column.type was 'TEXT'
+
+    description = sa.Column('description', mysql.TEXT())  # column.type was 'TEXT'
+
 
     def json(self):
         return {
@@ -532,20 +901,63 @@ class Reference(db.Model):
             'description': self.description,
         }
 
+
 class Sample(db.Model):
     __tablename__ = 'sample'
-    sample_id = db.Column('sample_id', db.Integer, primary_key=True)
-    project_id = db.Column('project_id', db.Integer)
-    combined_assembly_id = db.Column('combined_assembly_id', db.Integer)
-    sample_acc = db.Column('sample_acc', db.VARCHAR(255))
-    sample_name = db.Column('sample_name', db.VARCHAR(255))
-    sample_type = db.Column('sample_type', db.VARCHAR(255))
-    sample_description = db.Column('sample_description', db.TEXT)
-    comments = db.Column('comments', db.TEXT)
-    taxon_id = db.Column('taxon_id', db.Integer)
-    latitude = db.Column('latitude', db.VARCHAR(255))
-    longitude = db.Column('longitude', db.VARCHAR(255))
-    url = db.Column('url', db.VARCHAR(255))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['project_id'], ['project.project_id']),
+        sa.ForeignKeyConstraint(['combined_assembly_id'], ['combined_assembly.combined_assembly_id'])
+    )
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    project_id = sa.Column('project_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    combined_assembly_id = sa.Column('combined_assembly_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    sample_acc = sa.Column('sample_acc', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    sample_name = sa.Column('sample_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    sample_type = sa.Column('sample_type', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    sample_description = sa.Column('sample_description', mysql.TEXT())  # column.type was 'TEXT'
+
+    comments = sa.Column('comments', mysql.TEXT())  # column.type was 'TEXT'
+
+    taxon_id = sa.Column('taxon_id', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    latitude = sa.Column('latitude', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    longitude = sa.Column('longitude', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    url = sa.Column('url', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+
+    combined_assembly_list = sa.orm.relationship(
+        "Combined_assembly",
+        secondary="combined_assembly_to_sample",
+        back_populates="sample_list"
+    )
+
+    investigator_list = sa.orm.relationship(
+        "Investigator",
+        secondary="sample_to_investigator",
+        back_populates="sample_list"
+    )
+
+    ontology_list = sa.orm.relationship(
+        "Ontology",
+        secondary="sample_to_ontology",
+        back_populates="sample_list"
+    )
+
+    uproc_list = sa.orm.relationship(
+        "Uproc",
+        secondary="sample_to_uproc",
+        back_populates="sample_list"
+    )
 
     def json(self):
         return {
@@ -562,31 +974,25 @@ class Sample(db.Model):
             'url': self.url,
         }
 
-    combined_assembly_list = sqlalchemy.orm.relationship(
-        "Combined_assembly",
-        secondary="combined_assembly_to_sample",
-        back_populates="sample_list"
-    )
-
-    investigator_list = sqlalchemy.orm.relationship(
-        "Investigator",
-        secondary="sample_to_investigator",
-        back_populates="sample_list"
-    )
-
-    ontology_list = sqlalchemy.orm.relationship(
-        "Ontology",
-        secondary="sample_to_ontology",
-        back_populates="sample_list"
-    )
 
 class Sample_attr(db.Model):
     __tablename__ = 'sample_attr'
-    sample_attr_id = db.Column('sample_attr_id', db.Integer, primary_key=True)
-    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer)
-    sample_id = db.Column('sample_id', db.Integer)
-    attr_value = db.Column('attr_value', db.VARCHAR(255))
-    unit = db.Column('unit', db.VARCHAR(255))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['sample_attr_type_id'], ['sample_attr_type.sample_attr_type_id']),
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id'])
+    )
+
+    sample_attr_id = sa.Column('sample_attr_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    sample_attr_type_id = sa.Column('sample_attr_type_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    attr_value = sa.Column('attr_value', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    unit = sa.Column('unit', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
 
     def json(self):
         return {
@@ -596,13 +1002,20 @@ class Sample_attr(db.Model):
             'unit': self.unit,
         }
 
+
 class Sample_attr_type(db.Model):
     __tablename__ = 'sample_attr_type'
-    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer, primary_key=True)
-    type = db.Column('type', db.VARCHAR(255))
-    url_template = db.Column('url_template', db.VARCHAR(255))
-    description = db.Column('description', db.Text)
-    category = db.Column('category', db.VARCHAR(100))
+
+    sample_attr_type_id = sa.Column('sample_attr_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    type = sa.Column('type', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    url_template = sa.Column('url_template', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    description = sa.Column('description', mysql.MEDIUMTEXT())  # column.type was 'MEDIUMTEXT'
+
+    category = sa.Column('category', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
 
     def json(self):
         return {
@@ -612,11 +1025,20 @@ class Sample_attr_type(db.Model):
             'category': self.category,
         }
 
+
 class Sample_attr_type_alias(db.Model):
     __tablename__ = 'sample_attr_type_alias'
-    sample_attr_type_alias_id = db.Column('sample_attr_type_alias_id', db.Integer, primary_key=True)
-    sample_attr_type_id = db.Column('sample_attr_type_id', db.Integer)
-    alias = db.Column('alias', db.VARCHAR(200))
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['sample_attr_type_id'], ['sample_attr_type.sample_attr_type_id']),
+    )
+
+    sample_attr_type_alias_id = sa.Column('sample_attr_type_alias_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    sample_attr_type_id = sa.Column('sample_attr_type_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    alias = sa.Column('alias', mysql.VARCHAR(200))  # column.type was 'VARCHAR(200)'
+
 
     def json(self):
         return {
@@ -624,16 +1046,31 @@ class Sample_attr_type_alias(db.Model):
             'alias': self.alias,
         }
 
+
 class Sample_file(db.Model):
     __tablename__ = 'sample_file'
-    sample_file_id = db.Column('sample_file_id', db.Integer, primary_key=True)
-    sample_id = db.Column('sample_id', db.Integer)
-    sample_file_type_id = db.Column('sample_file_type_id', db.Integer)
-    file = db.Column('file', db.VARCHAR(200))
-    num_seqs = db.Column('num_seqs', db.INTEGER)
-    num_bp = db.Column('num_bp', db.INTEGER)
-    avg_len = db.Column('avg_len', db.INTEGER)
-    pct_gc = db.Column('pct_gc', db.Float)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['sample_file_type_id'], ['sample_file_type.sample_file_type_id']),
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id'])
+    )
+
+    sample_file_id = sa.Column('sample_file_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    sample_file_type_id = sa.Column('sample_file_type_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    file = sa.Column('file', mysql.VARCHAR(200))  # column.type was 'VARCHAR(200)'
+
+    num_seqs = sa.Column('num_seqs', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+    num_bp = sa.Column('num_bp', mysql.BIGINT(unsigned=True))  # column.type was 'BIGINT(20) UNSIGNED'
+
+    avg_len = sa.Column('avg_len', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+    pct_gc = sa.Column('pct_gc', sa.Float)  # column.type was 'DOUBLE'
+
 
     def json(self):
         return {
@@ -646,21 +1083,35 @@ class Sample_file(db.Model):
             'pct_gc': self.pct_gc,
         }
 
+
 class Sample_file_type(db.Model):
     __tablename__ = 'sample_file_type'
-    sample_file_type_id = db.Column('sample_file_type_id', db.Integer, primary_key=True)
-    type = db.Column('type', db.VARCHAR(255))
+
+    sample_file_type_id = sa.Column('sample_file_type_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    type = sa.Column('type', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
 
     def json(self):
         return {
             'type': self.type,
         }
 
+
 class Sample_to_investigator(db.Model):
     __tablename__ = 'sample_to_investigator'
-    sample_to_investigator_id = db.Column('sample_to_investigator_id', db.Integer, primary_key=True)
-    sample_id = db.Column('sample_id', db.Integer)
-    investigator_id = db.Column('investigator_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id']),
+        sa.ForeignKeyConstraint(['investigator_id'], ['investigator.investigator_id'])
+    )
+
+    sample_to_investigator_id = sa.Column('sample_to_investigator_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    investigator_id = sa.Column('investigator_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -668,11 +1119,21 @@ class Sample_to_investigator(db.Model):
             'investigator_id': self.investigator_id,
         }
 
+
 class Sample_to_ontology(db.Model):
     __tablename__ = 'sample_to_ontology'
-    sample_to_ontology_id = db.Column('sample_to_ontology_id', db.Integer, primary_key=True)
-    sample_id = db.Column('sample_id', db.Integer)
-    ontology_id = db.Column('ontology_id', db.Integer)
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['ontology_id'], ['ontology.ontology_id']),
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id'])
+    )
+
+    sample_to_ontology_id = sa.Column('sample_to_ontology_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    ontology_id = sa.Column('ontology_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
 
     def json(self):
         return {
@@ -680,13 +1141,45 @@ class Sample_to_ontology(db.Model):
             'ontology_id': self.ontology_id,
         }
 
+
+class Sample_to_uproc(db.Model):
+    __tablename__ = 'sample_to_uproc'
+
+    __table_args__ = (
+        sa.ForeignKeyConstraint(['sample_id'], ['sample.sample_id']),
+        sa.ForeignKeyConstraint(['uproc_id'], ['uproc.uproc_id'])
+    )
+
+    sample_to_uproc_id = sa.Column('sample_to_uproc_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    sample_id = sa.Column('sample_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    uproc_id = sa.Column('uproc_id', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    read_count = sa.Column('read_count', mysql.INTEGER())  # column.type was 'INTEGER(11)'
+
+
+    def json(self):
+        return {
+            'sample_id': self.sample_id,
+            'uproc_id': self.uproc_id,
+            'read_count': self.read_count,
+        }
+
+
 class Search(db.Model):
     __tablename__ = 'search'
-    search_id = db.Column('search_id', db.Integer, primary_key=True)
-    table_name = db.Column('table_name', db.VARCHAR(100))
-    primary_key = db.Column('primary_key', db.INTEGER)
-    object_name = db.Column('object_name', db.VARCHAR(255))
-    search_text = db.Column('search_text', db.Text)
+
+    search_id = sa.Column('search_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    table_name = sa.Column('table_name', mysql.VARCHAR(100))  # column.type was 'VARCHAR(100)'
+
+    primary_key = sa.Column('primary_key', mysql.INTEGER(unsigned=True))  # column.type was 'INTEGER(10) UNSIGNED'
+
+    object_name = sa.Column('object_name', mysql.VARCHAR(255))  # column.type was 'VARCHAR(255)'
+
+    search_text = sa.Column('search_text', mysql.LONGTEXT())  # column.type was 'LONGTEXT'
+
 
     def json(self):
         return {
@@ -696,13 +1189,47 @@ class Search(db.Model):
             'search_text': self.search_text,
         }
 
+
+class Uproc(db.Model):
+    __tablename__ = 'uproc'
+
+    uproc_id = sa.Column('uproc_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    accession = sa.Column('accession', mysql.VARCHAR(16))  # column.type was 'VARCHAR(16)'
+
+    identifier = sa.Column('identifier', mysql.VARCHAR(16))  # column.type was 'VARCHAR(16)'
+
+    name = sa.Column('name', mysql.VARCHAR(80))  # column.type was 'VARCHAR(80)'
+
+    description = sa.Column('description', mysql.TEXT())  # column.type was 'TEXT'
+
+
+    sample_list = sa.orm.relationship(
+        "Sample",
+        secondary="sample_to_uproc",
+        back_populates="uproc_list"
+    )
+
+    def json(self):
+        return {
+            'accession': self.accession,
+            'identifier': self.identifier,
+            'name': self.name,
+            'description': self.description,
+        }
+
+
 class User(db.Model):
     __tablename__ = 'user'
-    user_id = db.Column('user_id', db.Integer, primary_key=True)
-    user_name = db.Column('user_name', db.VARCHAR(50))
+
+    user_id = sa.Column('user_id', mysql.INTEGER(unsigned=True), primary_key=True)
+
+    user_name = sa.Column('user_name', mysql.VARCHAR(50))  # column.type was 'VARCHAR(50)'
+
 
     def json(self):
         return {
             'user_name': self.user_name,
         }
+
 

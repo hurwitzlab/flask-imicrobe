@@ -15,7 +15,7 @@ A demonstration iMicrobe app server built with Flask.
       $ python3.6 -m venv ~/venv/flim
       $ source ~/venv/flim/bin/activate
       (flim)$ cd /flask-imicrobe
-      (flim)$ pip install -r requirements
+      (flim)$ pip install -r requirements.txt
       ```
   7. run the development app server and allow connections from outside with `--host 0.0.0.0`:
       ```

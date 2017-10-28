@@ -1,9 +1,3 @@
-sqlalchemy
-flask
-flask-admin
-flask-basicauth
-flask-script
-flask-sqlalchemy
-pymysql
-pytest
-requests
+-e git+https://github.com/hurwitzlab/imicrobe-python-orm.git#egg=imicrobe_model
+
+.

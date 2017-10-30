@@ -18,6 +18,7 @@ from app import db
 """
 
     def write_additional_methods(self, table, table_code):
+        # write a json() method
         table_code.write("    def json(self):\n        return {\n")
         for column in table.columns:
             if column.primary_key:
@@ -30,8 +31,25 @@ from app import db
         table_code.write("        }")
         table_code.write("\n\n")
 
-    # print(dir(table))
-    # print(table.columns)
+        # write __repr__() if we know which fields to display
+        table_name_to_repr = {
+            'app_data_type': 'name',
+            'app_tag': 'value',
+            'combined_assembly': 'assembly_name',
+            'domain': 'domain_name',
+            'investigator': 'investigator_name',
+            'ontology': 'label',
+            'project': 'project_name',
+            'project_group': 'group_name',
+            'protocol': 'protocol_name',
+            'sample': 'sample_name',
+            'uproc': 'accession'
+        }
+
+        if table.name in table_name_to_repr:
+            table_code.write(
+                "    def __repr__(self):\n"
+                "        return self.{}\n\n".format(table_name_to_repr[table.name]))
 
 def main():
     FlaskModelWriter().write_models('app/models.py')

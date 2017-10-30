@@ -55,6 +55,9 @@ class App_data_type(db.Model):
             'alias': self.alias,
         }
 
+    def __repr__(self):
+        return self.name
+
 
 class App_run(db.Model):
     __tablename__ = 'app_run'
@@ -102,6 +105,9 @@ class App_tag(db.Model):
         return {
             'value': self.value,
         }
+
+    def __repr__(self):
+        return self.value
 
 
 class App_to_app_data_type(db.Model):
@@ -250,6 +256,9 @@ class Combined_assembly(db.Model):
             'cds_file': self.cds_file,
         }
 
+    def __repr__(self):
+        return self.assembly_name
+
 
 class Combined_assembly_to_sample(db.Model):
     __tablename__ = 'combined_assembly_to_sample'
@@ -291,6 +300,9 @@ class Domain(db.Model):
         return {
             'domain_name': self.domain_name,
         }
+
+    def __repr__(self):
+        return self.domain_name
 
 
 class Ftp(db.Model):
@@ -350,6 +362,9 @@ class Investigator(db.Model):
             'institution': self.institution,
             'url': self.url,
         }
+
+    def __repr__(self):
+        return self.investigator_name
 
 
 class Login(db.Model):
@@ -446,6 +461,9 @@ class Ontology(db.Model):
             'ontology_type_id': self.ontology_type_id,
         }
 
+    def __repr__(self):
+        return self.label
+
 
 class Ontology_type(db.Model):
     __tablename__ = 'ontology_type'
@@ -540,6 +558,9 @@ class Project(db.Model):
             'nt_file': self.nt_file,
         }
 
+    def __repr__(self):
+        return self.project_name
+
 
 class Project_file(db.Model):
     __tablename__ = 'project_file'
@@ -604,6 +625,9 @@ class Project_group(db.Model):
             'description': self.description,
             'url': self.url,
         }
+
+    def __repr__(self):
+        return self.group_name
 
 
 class Project_page(db.Model):
@@ -745,6 +769,9 @@ class Protocol(db.Model):
             'protocol_name': self.protocol_name,
             'url': self.url,
         }
+
+    def __repr__(self):
+        return self.protocol_name
 
 
 class Pubchase(db.Model):
@@ -973,6 +1000,9 @@ class Sample(db.Model):
             'longitude': self.longitude,
             'url': self.url,
         }
+
+    def __repr__(self):
+        return self.sample_name
 
 
 class Sample_attr(db.Model):
@@ -1217,6 +1247,9 @@ class Uproc(db.Model):
             'name': self.name,
             'description': self.description,
         }
+
+    def __repr__(self):
+        return self.accession
 
 
 class User(db.Model):

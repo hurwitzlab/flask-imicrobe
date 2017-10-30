@@ -2,7 +2,6 @@ import os
 
 from flask import Flask
 from flask_admin import Admin
-from flask_admin.contrib.sqla import ModelView
 from flask_basicauth import BasicAuth
 from flask_sqlalchemy import SQLAlchemy
 
@@ -12,6 +11,7 @@ from config import configs
 db = SQLAlchemy()
 
 from app import models
+from app.model_view import iMicrobeModelView
 
 
 def create_app(config_name):
@@ -35,8 +35,9 @@ def create_app(config_name):
 
     admin = Admin(app_, name='iMicrobe Admin', template_mode='bootstrap3', url='/flask/admin')
     for models_class in models.__dict__.values():
-        if (isinstance(models_class, type) and models_class.__module__ == models.__name__):
-            admin.add_view(ModelView(models_class, db.session))
+        if isinstance(models_class, type) and models_class.__module__ == models.__name__:
+            view = iMicrobeModelView(models_class, db.session)
+            admin.add_view(view)
         else:
             print('"{}" is not a database model'.format(models_class))
 

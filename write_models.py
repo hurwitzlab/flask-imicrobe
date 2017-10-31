@@ -35,6 +35,7 @@ from app import db
         table_name_to_repr = {
             'app_data_type': 'name',
             'app_tag': 'value',
+            'assembly': 'assembly_name',
             'combined_assembly': 'assembly_name',
             'domain': 'domain_name',
             'investigator': 'investigator_name',
@@ -43,6 +44,9 @@ from app import db
             'project_group': 'group_name',
             'protocol': 'protocol_name',
             'sample': 'sample_name',
+            'sample_attr': 'attr_value',
+            'sample_file': 'file',
+            'sample_file_type': 'type',
             'uproc': 'accession'
         }
 

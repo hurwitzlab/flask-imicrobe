@@ -76,6 +76,7 @@ setup(
         'flask-script',
         'flask-sqlalchemy',
         'pandas',
+        'pytest',
         'sqlalchemy',
         'xlrd'
     ],

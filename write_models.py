@@ -31,28 +31,36 @@ from app import db
 
         # write __repr__() if we know which fields to display
         table_name_to_representative_py_attr = {
-            'app_data_type': 'name',
-            'app_tag': 'value',
-            'assembly': 'assembly_name',
-            'combined_assembly': 'assembly_name',
-            'domain': 'domain_name',
-            'investigator': 'investigator_name',
-            'ontology': 'label',
-            'project': 'project_name',
-            'project_group': 'group_name',
-            'protocol': 'protocol_name',
-            'sample': 'sample_name',
-            'sample_attr': 'attr_value',
-            'sample_attr_type': 'type_',
-            'sample_file': 'file',
-            'sample_file_type': 'type_',
-            'uproc': 'accession'
+            'app_data_type': ('name', ),
+            'app_tag': ('value', ),
+            'assembly': ('assembly_name', ),
+            'centrifuge': ('name', ),
+            'combined_assembly': ('assembly_name', ),
+            'domain': ('domain_name', ),
+            'investigator': ('investigator_name', ),
+            'ontology': ('label', ),
+            'project': ('project_name', ),
+            'project_group': ('group_name', ),
+            'protocol': ('protocol_name', ),
+            'sample': ('sample_name', ),
+            'sample_attr': ('sample_attr_type', 'attr_value', ),
+            'sample_attr_type': ('type_', ),
+            'sample_file': ('file', ),
+            'sample_file_type': ('type_', ),
+            'uproc': ('accession', )
         }
 
         if table.name in table_name_to_representative_py_attr:
             table_code.write(
                 "    def __repr__(self):\n"
-                "        return self.{}\n\n".format(table_name_to_representative_py_attr[table.name]))
+                "        return " + ' + ":" + '.join([
+                    "str(self.{})".format(a)
+                    for a
+                    in table_name_to_representative_py_attr[table.name]]))
+            table_code.write('\n\n')
+
+
+                #"        return self.{}\n\n".format(table_name_to_representative_py_attr[table.name]))
 
 def main():
     FlaskModelWriter().write_models('app/models.py')

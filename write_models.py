@@ -38,6 +38,7 @@ from app import db
             'combined_assembly': ('assembly_name', ),
             'domain': ('domain_name', ),
             'investigator': ('investigator_name', ),
+            'kegg_annotation': ('kegg_annotation_id', ),
             'ontology': ('label', ),
             'project': ('project_name', ),
             'project_group': ('group_name', ),

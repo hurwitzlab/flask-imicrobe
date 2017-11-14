@@ -33,7 +33,8 @@ def create_app(config_name):
     from .imicrobe import encoder
     app_.json_encoder = encoder.IMicrobeEncoder
 
-    admin = Admin(app_, name='iMicrobe Admin', template_mode='bootstrap3', url='/flask/admin')
+    admin_app_name = os.environ.get("IMICROBE_ADMIN_NAME")
+    admin = Admin(app_, name=admin_app_name, template_mode='bootstrap3', url='/flask/admin')
     for models_class in models.__dict__.values():
         if isinstance(models_class, type) and models_class.__module__ == models.__name__:
             view = iMicrobeModelView(models_class, db.session)

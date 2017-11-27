@@ -1,13 +1,19 @@
-from imicrobe_model import write_models
+import os
+
+from orminator import ModelWriter
 
 
-class FlaskModelWriter(write_models.ModelWriter):
+class IMicrobeModelWriter(ModelWriter):
+    def __init__(self, db_uri):
+        super().__init__(db_uri)
+
     def get_model_parent_class_name(self):
         return 'db.Model'
 
     def import_model_base(self):
         return """\
 import sqlalchemy as sa
+from sqlalchemy.orm import backref
 import sqlalchemy.dialects.mysql as mysql
 
 from app import db
@@ -61,10 +67,8 @@ from app import db
             table_code.write('\n\n')
 
 
-                #"        return self.{}\n\n".format(table_name_to_representative_py_attr[table.name]))
-
 def main():
-    FlaskModelWriter().write_models('app/models.py')
+    IMicrobeModelWriter(db_uri=os.environ.get('IMICROBE_DB_URI')).write_models('app/models.py')
 
 
 if __name__ == '__main__':

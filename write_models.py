@@ -52,7 +52,7 @@ from app import db
             'sample': ('sample_name', ),
             'sample_attr': ('sample_attr_type', 'attr_value', ),
             'sample_attr_type': ('type_', ),
-            'sample_file': ('file', ),
+            'sample_file': ('file_', ),
             'sample_file_type': ('type_', ),
             'uproc': ('accession', )
         }

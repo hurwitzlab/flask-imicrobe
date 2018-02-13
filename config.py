@@ -31,8 +31,12 @@ class DevelopmentConfig(Config):
 
 
 class ProductionConfig(Config):
-    DEBUG = False
+    DEBUG = True
     ADMIN_URL = '/admin'
+
+    def init_app(self, app):
+        Config.init_app(self, app)
+        toolbar = DebugToolbarExtension(app)
 
 
 configs = {

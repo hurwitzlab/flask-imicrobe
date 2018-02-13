@@ -75,6 +75,7 @@ setup(
         'flask-basicauth',
         'flask-script',
         'flask-sqlalchemy',
+        'flask-debugtoolbar',
         'orminator',
         'pandas',
         'pytest',

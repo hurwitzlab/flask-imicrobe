@@ -1,3 +1,7 @@
--e git+https://github.com/hurwitzlab/orminator.git#egg=orminator
+wheel
+# install flask-admin from master to deal with this:
+#   https://github.com/flask-admin/flask-admin/issues/1588
+git+https://github.com/flask-admin/flask-admin
+git+https://github.com/hurwitzlab/orminator.git#egg=orminator
 
 .

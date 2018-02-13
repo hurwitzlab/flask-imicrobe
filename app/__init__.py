@@ -12,7 +12,7 @@ db = SQLAlchemy()
 
 
 from app import models
-from app.model_view import iMicrobeModelView
+from app.model_view import iMicrobeModelView, SampleView
 
 
 def create_app(config_name):
@@ -42,9 +42,14 @@ def create_app(config_name):
 
     for models_class in models.__dict__.values():
         if isinstance(models_class, type) and models_class.__module__ == models.__name__:
-            view = iMicrobeModelView(models_class, db.session)
+            print('found model class "{}"'.format(models_class.__name__))
+            if models_class.__name__ == 'Sample':
+                view = SampleView(models_class, db.session)
+            else:
+                view = iMicrobeModelView(models_class, db.session)
             admin.add_view(view)
         else:
-            print('"{}" is not a database model'.format(models_class))
+            pass
+            #print('"{}" is not a database model'.format(models_class))
 
     return app_

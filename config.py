@@ -1,8 +1,8 @@
 import os
 
+from flask_debugtoolbar import DebugToolbarExtension
 
-basedir = os.path.abspath(os.path.dirname(__file__))
-
+#basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
@@ -24,6 +24,10 @@ class DevelopmentConfig(Config):
     DEBUG = True
     # this url can coexist with /imicrobe/admin on a development server
     ADMIN_URL = '/imicrobe/admin'
+
+    def init_app(self, app):
+        Config.init_app(self, app)
+        toolbar = DebugToolbarExtension(app)
 
 
 class ProductionConfig(Config):

@@ -18,6 +18,45 @@ class iMicrobeModelView(ModelView):
         'uproc_kegg_result_list',
         'uproc_pfam_result_list']  # this is just for Sample lazy!
 
+    column_defaults = {
+        models.Project: {
+            models.Project.project_code: '',
+            models.Project.project_name: '',
+            models.Project.pi: '',
+            models.Project.institution: '',
+            models.Project.project_type: '',
+            models.Project.url: '',
+            models.Project.read_file: '',
+            models.Project.meta_file: '',
+            models.Project.assembly_file: '',
+            models.Project.peptide_file: '',
+            models.Project.email: '',
+            models.Project.read_pep_file: '',
+            models.Project.nt_file: ''
+        },
+        models.Sample: {
+            models.Sample.sample_name: '',
+            models.Sample.sample_type: '',
+            models.Sample.taxon_id: '',
+            models.Sample.url: ''
+        }
+    }
+
+    def _on_model_change(self, form, model, is_created):
+        #print('on_model_change')
+        #print('  type(model): "{}"'.format(type(model)))
+        if type(model) in self.column_defaults:
+            #print('  "{}" is in self.column_defaults', type(model))
+            for attr, default_value in self.column_defaults[type(model)].items():
+                #print('    attr: "{}" has name "{}"'.format(attr, attr.name))
+                if getattr(model, attr.name) is None:
+                    print('    set attr "{}" to "{}"'.format(attr, default_value))
+                    setattr(model, attr.name, default_value)
+                else:
+                    pass
+        else:
+            pass
+
 
 class SampleView(iMicrobeModelView):
     form_ajax_refs = {
@@ -28,27 +67,6 @@ class SampleView(iMicrobeModelView):
             'fields': (models.Sample_file.file_, )
         }
     }
-
-    def on_model_change(self, form, model, is_created):
-        print('on_model_change')
-        #pprint(form.__dict__)
-        #pprint(form._fields)
-        #print('taxon_id: "{}"'.format(form.taxon_id))
-        #print('taxon_id.__dict__: "{}"'.format(form.taxon_id.__dict__))
-        #print('taxon_id.data: "{}"'.format(form.taxon_id.data))
-        #print('model.taxon_id: "{}"'.format(model.taxon_id))
-        # could instead look at model.taxon_id
-        if form.sample_name is None:
-            model.sample_name = ''
-        if form.sample_type is None:
-            model.sample_type = ''
-        if form.taxon_id.data is None:
-            model.taxon_id = ''
-        #print('model.url: "{}"'.format(model.url))
-        if form.url.data is None:
-            model.url = ''
-        #print(is_created)
-
 
 
 class ProjectToDomainView(iMicrobeModelView):

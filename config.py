@@ -1,10 +1,12 @@
 import os
+import pprint
 
 from flask_debugtoolbar import DebugToolbarExtension
 
-#basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config:
+    SQLALCHEMY_ECHO = True
+
     SQLALCHEMY_COMMIT_ON_TEARDOWN = True
     SQLALCHEMY_TRACK_MODIFICATIONS = False
     SQLALCHEMY_POOL_RECYCLE = 60  # should be less than DB connection timeout
@@ -18,6 +20,7 @@ class Config:
 
     def init_app(self, app):
         app.ADMIN_URL = self.ADMIN_URL
+        app.debug = self.DEBUG
 
 
 class DevelopmentConfig(Config):
@@ -26,17 +29,21 @@ class DevelopmentConfig(Config):
     ADMIN_URL = '/imicrobe/admin'
 
     def init_app(self, app):
+        print('DevelopmentConfig init_app')
         Config.init_app(self, app)
-        toolbar = DebugToolbarExtension(app)
+        app.debug = True
+        self.toolbar = DebugToolbarExtension(app)
+        pprint.pprint(app.config)
 
 
 class ProductionConfig(Config):
-    DEBUG = True
+    DEBUG = False
     ADMIN_URL = '/admin'
 
     def init_app(self, app):
+        print('ProductionConfig init_app')
         Config.init_app(self, app)
-        toolbar = DebugToolbarExtension(app)
+        #self.toolbar = DebugToolbarExtension(app)
 
 
 configs = {

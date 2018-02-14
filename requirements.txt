@@ -4,4 +4,4 @@ wheel
 git+https://github.com/flask-admin/flask-admin
 git+https://github.com/hurwitzlab/orminator.git#egg=orminator
 
-.
+-e .

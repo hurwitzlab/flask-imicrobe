@@ -1,3 +1,5 @@
+from pprint import pprint
+
 from flask import Flask
 from flask_admin import Admin
 from flask_basicauth import BasicAuth
@@ -10,7 +12,8 @@ db = SQLAlchemy()
 
 
 from app import models
-from app.model_view import iMicrobeModelView, SampleView
+#from app import model_view
+from app.model_view import iMicrobeModelView, ProjectView, SampleView
 
 
 def create_app(config_name):
@@ -41,13 +44,40 @@ def create_app(config_name):
     for model_class in models.__dict__.values():
         if isinstance(model_class, type) and model_class.__module__ == models.__name__:
             print('found model class "{}"'.format(model_class.__name__))
-            if model_class.__name__ == 'Sample':
+            if model_class.__name__ == 'Project':
+                view = ProjectView(model_class, db.session)
+            elif model_class.__name__ == 'Sample':
                 view = SampleView(model_class, db.session)
             else:
                 view = iMicrobeModelView(model_class, db.session)
             admin.add_view(view)
         else:
             pass
-            #print('"{}" is not a database model'.format(models_class))
+            # print('"{}" is not a database model'.format(models_class))
 
     return app_
+
+"""
+    # construct the name of a specific View using the model_class.__name__
+    # for example if model_class.__name__ is 'Sample' look for a view called 'SampleView'
+    # if 'SampleView' exists in the model_view module then instantiate it
+    # otherwise use the generic iMicrobeModelView
+    for model_class in models.__dict__.values():
+        if isinstance(model_class, type) and model_class.__module__ == models.__name__:
+            print('found model class "{}"'.format(model_class.__name__))
+            specific_model_view_class_name = model_class.__name__ + 'View'
+            if hasattr(model_view, specific_model_view_class_name):
+                print('nailed it: {}'.format(specific_model_view_class_name))
+                view_class = getattr(model_view, specific_model_view_class_name)
+                print('found view class "{}"'.format(view_class))
+                view = view_class(model_class, db.session)
+            else:
+                #view = model_view.iMicrobeModelView(model_class, db.session)
+                view_class = getattr(model_view, 'iMicrobeModelView')
+                print('using class {}'.format(view_class))
+                view = view_class(model_class, db.session)
+            admin.add_view(view)
+        else:
+            pass
+            #print('"{}" is not a database model'.format(models_class))
+"""

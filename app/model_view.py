@@ -19,6 +19,11 @@ class iMicrobeModelView(ModelView):
         'uproc_pfam_result_list']  # this is just for Sample lazy!
 
     column_defaults = {
+        models.Investigator: {
+            models.Investigator.investigator_name: '',
+            models.Investigator.institution: '',
+            models.Investigator.url: '',
+        },
         models.Project: {
             models.Project.project_code: '',
             models.Project.project_name: '',
@@ -42,6 +47,7 @@ class iMicrobeModelView(ModelView):
         }
     }
 
+
     def _on_model_change(self, form, model, is_created):
         #print('on_model_change')
         #print('  type(model): "{}"'.format(type(model)))
@@ -58,23 +64,32 @@ class iMicrobeModelView(ModelView):
             pass
 
 
+class ProjectView(iMicrobeModelView):
+    column_searchable_list = ['project_code', 'project_name', 'description']
+    column_filters = ['project_id', ]
+
+    form_ajax_refs = {
+        'domain_list': {
+            'fields': (models.Domain.domain_name, )
+        },
+        'ftp_list': {
+            'fields': (models.Ftp.path, )
+        },
+        'project_file_list': {
+            'fields': (models.Project_file.file_, )
+        }
+     }
+
+
 class SampleView(iMicrobeModelView):
+    column_searchable_list = ['sample_acc', 'sample_name', 'sample_description']
+    column_filters = ['sample_id', ]
+
     form_ajax_refs = {
         'sample_attr_list': {
             'fields': (models.Sample_attr.attr_value, )
         },
         'sample_file_list': {
             'fields': (models.Sample_file.file_, )
-        }
-    }
-
-
-class ProjectToDomainView(iMicrobeModelView):
-    form_ajax_refs = {
-        'project_id': {
-            'fields': (models.Project.project_name, )
-        },
-        'domain_id': {
-            'fields': (models.Domain.domain_name, )
         }
     }

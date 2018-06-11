@@ -31,3 +31,17 @@ Download or clone the repository and install with `pip`. The ORM classes must be
 ```
 (flim) $ python manage.py runserver --port 5000 --host 0.0.0.0
 ```
+
+## View
+
+In development configuration the URL looks like this:
+
+```
+https://localhost:8443/imicrobe/admin/
+```
+
+In production configuration the URL looks like this:
+
+```
+https://www.imicrobe.us/admin/
+```

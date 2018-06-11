@@ -45,3 +45,12 @@ In production configuration the URL looks like this:
 ```
 https://www.imicrobe.us/admin/
 ```
+
+## Update after database changes
+Stop the flask server with Ctrl-C. Run `write_models.py` and start the server again.
+
+```bash
+(flim) $ <Ctrl-C>
+(flim) $ python write_models.py
+(flim) $ python manage.py runserver --port 5001 --host 0.0.0.0
+```

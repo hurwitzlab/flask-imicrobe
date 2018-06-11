@@ -1,13 +1,19 @@
-from imicrobe_model import write_models
+import os
+
+from orminator import ModelWriter
 
 
-class FlaskModelWriter(write_models.ModelWriter):
+class IMicrobeModelWriter(ModelWriter):
+    def __init__(self, db_uri):
+        super().__init__(db_uri)
+
     def get_model_parent_class_name(self):
         return 'db.Model'
 
     def import_model_base(self):
         return """\
 import sqlalchemy as sa
+from sqlalchemy.orm import backref
 import sqlalchemy.dialects.mysql as mysql
 
 from app import db
@@ -37,16 +43,18 @@ from app import db
             'centrifuge': ('name', ),
             'combined_assembly': ('assembly_name', ),
             'domain': ('domain_name', ),
+            'ftp': ('path', ),
             'investigator': ('investigator_name', ),
             'kegg_annotation': ('kegg_annotation_id', ),
             'ontology': ('label', ),
             'project': ('project_name', ),
+            'project_file': ('file_', ),
             'project_group': ('group_name', ),
             'protocol': ('protocol_name', ),
             'sample': ('sample_name', ),
             'sample_attr': ('sample_attr_type', 'attr_value', ),
             'sample_attr_type': ('type_', ),
-            'sample_file': ('file', ),
+            'sample_file': ('file_', ),
             'sample_file_type': ('type_', ),
             'uproc': ('accession', )
         }
@@ -61,10 +69,8 @@ from app import db
             table_code.write('\n\n')
 
 
-                #"        return self.{}\n\n".format(table_name_to_representative_py_attr[table.name]))
-
 def main():
-    FlaskModelWriter().write_models('app/models.py')
+    IMicrobeModelWriter(db_uri=os.environ.get('IMICROBE_DB_URI')).write_models('app/models.py')
 
 
 if __name__ == '__main__':

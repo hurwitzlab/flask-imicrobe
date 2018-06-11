@@ -12,7 +12,6 @@ db = SQLAlchemy()
 
 
 from app import models
-#from app import model_view
 from app.model_view import iMicrobeModelView, ProjectView, SampleView
 
 
@@ -58,6 +57,8 @@ def create_app(config_name):
     return app_
 
 """
+    # so far haven't gotten this to work....
+    #
     # construct the name of a specific View using the model_class.__name__
     # for example if model_class.__name__ is 'Sample' look for a view called 'SampleView'
     # if 'SampleView' exists in the model_view module then instantiate it

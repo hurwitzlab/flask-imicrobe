@@ -52,5 +52,5 @@ Stop the flask server with Ctrl-C. Run `write_models.py` and start the server ag
 ```bash
 (flim) $ <Ctrl-C>
 (flim) $ python write_models.py
-(flim) $ python manage.py runserver --port 5001 --host 0.0.0.0
+(flim) $ python manage.py runserver --port 5000 --host 0.0.0.0
 ```
